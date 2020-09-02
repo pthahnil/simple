@@ -1,0 +1,23 @@
+# Created by pthahnil
+
+target/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.ipr
+*.iml
+
+### Maven ###
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.next
+release.properties
+
+### disconf ###
+disconf/
+
+catalina.base_IS_UNDEFINED/
+logs/
+
+test/

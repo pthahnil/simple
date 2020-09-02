@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<substitutionProperty name="max.size" value="50MB" />
+	<substitutionProperty name="max.histrory" value="90" />
+	<substitutionProperty name="log.base" value="${catalina.base}/logs/${logs.file.name}" />
+	<substitutionProperty name="log.error" value="${log.base}/error" />
+	<substitutionProperty name="log.info" value="${log.base}/info" />
+
+	<property name="log.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%F:%L] %X{transactionId} - %msg%n" />
+
+	<!--所有业务日志 -->
+	<appender name="info" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${log.info}/simple-info.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${log.info}/zip/simple-info.%d{yyyy-MM-dd-HH}.%i.zip
+			</FileNamePattern>
+			<MaxHistory>${max.histrory}</MaxHistory>
+			<TimeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<MaxFileSize>${max.size}</MaxFileSize>
+			</TimeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="ch.qos.logback.classic.PatternLayout">
+				<Pattern>${log.pattern}</Pattern>
+			</layout>
+			<charset class="java.nio.charset.Charset">UTF-8</charset>
+		</encoder>
+	</appender>
+
+	<!--错误日志 -->
+	<appender name="error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>
+		<File>${log.error}/simple-error.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				${log.error}/zip/simple-error.%d{yyyy-MM-dd-HH}.%i.zip
+			</FileNamePattern>
+			<MaxHistory>${max.histrory}</MaxHistory>
+			<TimeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<MaxFileSize>${max.size}</MaxFileSize>
+			</TimeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<Pattern>${log.pattern}</Pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+
+	<!--控制台 -->
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<Pattern>${log.pattern}</Pattern>
+		</encoder>
+	</appender>
+
+	<!-- 打印sql语句 -->
+	<logger name="com.simple.xrcraft.persist.mapper" level="info" />
+
+	<logger name="org.springframework" level="INFO" />
+	<logger name="org.springframework.jdbc.datasource.DataSourceTransactionManager" level="DEBUG" />
+	<logger name="org.mybatis" level="INFO" />
+
+	<root level="INFO">
+		<appender-ref ref="error" />
+		<appender-ref ref="all" />
+		<!--非本地一定要注释掉 -->
+		<!--<appender-ref ref="stdout"/>-->
+	</root>
+</configuration>

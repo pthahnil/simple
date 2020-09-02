@@ -1,0 +1,20 @@
+
+PBEWithMD5AndDES				64			64	CBC    PKCS5Padding/PKCS7Padding/ISO10126Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithMD5AndRC2				128			128	CBC    PKCS5Padding/PKCS7Padding/ISO10127Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithSHA1AndDES				64			64	CBC    PKCS5Padding/PKCS7Padding/ISO10128Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithSHA1AndRC2				128			128	CBC    PKCS5Padding/PKCS7Padding/ISO10129Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithSHAAndIDEA-CBC			128			128	CBC    PKCS5Padding/PKCS7Padding/ISO10130Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithSHAAnd2-KeyTripleDES-CBC	128			128	CBC    PKCS5Padding/PKCS7Padding/ISO10131Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithSHAAnd3-KeyTripleDES-CBC	192			192	CBC    PKCS5Padding/PKCS7Padding/ISO10132Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithSHAAnd128BitRC2-CBC		128			128	CBC    PKCS5Padding/PKCS7Padding/ISO10133Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithSHAAnd40BitRC2-CBC		40			40	CBC    PKCS5Padding/PKCS7Padding/ISO10134Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithSHAAnd128BitRC4			128			128	CBC    PKCS5Padding/PKCS7Padding/ISO10135Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithSHAAnd40BitRC4			40			40	CBC    PKCS5Padding/PKCS7Padding/ISO10136Padding/ZeroBytePadding    BouncyCastle实现
+PBEWithSHAAndTwofish-CBC		256			256	CBC    PKCS5Padding/PKCS7Padding/ISO10137Padding/ZeroBytePadding    BouncyCastle实现
+
+PBEWithMD5AndDES				56			56	CBC    PKCS5Padding    java6实现
+PBEWithMD5AndTripeDES			112、168    168	CBC    PKCS6Padding    java7实现
+PBEWithSHA1AndDESede			112、168    168	CBC    PKCS7Padding    java8实现
+
+
+PBEWithSHA1AndRC2_40			40至1024    128	CBC    PKCS8Padding    java9实现

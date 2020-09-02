@@ -1,0 +1,8 @@
+-- proxy stuff
+https://docs.oracle.com/javase/7/docs/technotes/guides/net/proxies.html
+
+-- bucket4j stuff
+https://www.baeldung.com/spring-bucket4j
+
+-- socket api invoke stuff
+DefaultHttpClientConnectionOperator
