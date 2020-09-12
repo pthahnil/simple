@@ -240,6 +240,34 @@ public class DateUtils {
 
 		return age.intValue();
 	}
+
+	/**
+	 * date -> localDateTime
+	 * @param date
+	 * @return
+	 */
+	public static LocalDateTime dt2Lc(Date date) {
+		if(null == date){
+			return null;
+		}
+		Instant instant = date.toInstant();
+		return LocalDateTime.ofInstant(instant, sysZone);
+	}
+
+	/**
+	 * localDateTime -> date
+	 * @param time
+	 * @return
+	 */
+	public static Date lc2Dt(LocalDateTime time) {
+		if(null == time){
+			return null;
+		}
+		Instant instant = time.toInstant(zoneOffset);
+		return Date.from(instant);
+	}
+
+
 }
 
 	
