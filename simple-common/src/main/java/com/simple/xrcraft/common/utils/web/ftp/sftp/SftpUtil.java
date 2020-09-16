@@ -40,7 +40,9 @@ public class SftpUtil {
 			}
 		}
 		if (!changeDir(conn, pathName)) {
-			return false;
+			if(!makeDir(conn, pathName)){
+				return false;
+			}
 		}
 
 		try {
@@ -144,9 +146,22 @@ public class SftpUtil {
 	 * @param dirName
 	 * @return
 	 */
-	public boolean makeDir(SftpConnection conn,String dirName) {
+	public static boolean makeDir(SftpConnection conn,String dirName) {
 		try {
-			conn.getChannel().mkdir(dirName);
+			String[] dirs = dirName.split("/");
+			StringBuffer dirPath = new StringBuffer("/");
+			if(dirs.length > 1){
+				for (int i = 0; i < dirs.length; i++) {
+					String dirUnit = dirs[i];
+					if(StringUtils.isBlank(dirUnit)) {
+						continue;
+					}
+					dirPath.append(dirUnit).append("/");
+					if(!changeDir(conn, dirPath.toString())){
+						conn.getChannel().mkdir(dirPath.toString());
+					}
+				}
+			}
 			log.debug("directory successfully created,dir=" + dirName);
 			return true;
 		} catch (SftpException e) {
