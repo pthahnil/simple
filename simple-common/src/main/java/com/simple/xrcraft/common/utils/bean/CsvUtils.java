@@ -36,9 +36,15 @@ public class CsvUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static <T> List<T> read(InputStream stream, Class<T> clazz, String encoding) throws Exception {
+	public static <T> List<T> read(InputStream stream, Class<T> clazz, Integer headerIndex, String encoding) throws Exception {
 		if(null == stream){
 			throw new Exception("csv文件为空");
+		}
+		if(null == headerIndex){
+			headerIndex = 0;
+		}
+		if(headerIndex < 0){
+			throw new Exception("headerIndex 必须为正数");
 		}
 		List<String> allInfos = IOUtils.readLines(stream, encoding);
 		if(CollectionUtils.isEmpty(allInfos) || allInfos.size() <= 1){
@@ -48,12 +54,13 @@ public class CsvUtils {
 		//列标题和字段段颖关系
 		Map<String, String> columnFieldMap = columnFieldMap(clazz);
 
-		String headerLine = allInfos.get(0);
+
+		String headerLine = allInfos.get(headerIndex);
 
 		//列标题和列索引对应关系
 		Map<Integer, String> columnIndexMap = columnIndexMap(headerLine);
 
-		List<String> infos = allInfos.subList(1, allInfos.size());
+		List<String> infos = allInfos.subList(headerIndex + 1, allInfos.size());
 		JSONArray array = new JSONArray();
 
 
