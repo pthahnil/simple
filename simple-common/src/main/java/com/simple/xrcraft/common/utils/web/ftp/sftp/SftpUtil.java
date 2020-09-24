@@ -12,6 +12,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -39,13 +40,13 @@ public class SftpUtil {
 				return false;
 			}
 		}
-		if (!changeDir(conn, pathName)) {
-			if(!makeDir(conn, pathName)){
-				return false;
-			}
-		}
-
 		try {
+			if (!changeDir(conn, pathName)) {
+				if(!makeDir(conn, pathName)){
+					return false;
+				}
+			}
+
 			int mod = forceUpload ? ChannelSftp.OVERWRITE : ChannelSftp.RESUME;
 			conn.getChannel().put(input, fileName, mod);
 			if (!existFile(conn, fileName)) {
@@ -58,44 +59,37 @@ public class SftpUtil {
 			log.error("upload failed", e);
 			return false;
 		} finally {
-			//conn.disConnect();
+			conn.disConnect();
 		}
 	}
 
-
-	/**
-	 * 下载文件
-	 * @param remotePath
-	 * @param fileName
-	 * @return
-	 */
-	public static byte[] downloadFile(SftpConnection conn, String remotePath, String fileName) {
-
+	public static boolean downloadFile(SftpConnection conn, String remotePath, String fileName, OutputStream os) {
 		//登录
 		if(!conn.getConnnected()) {
 			boolean loginSucc = conn.connect();
 			if(!loginSucc){
-				return null;
+				return false;
 			}
 		}
 		if (!changeDir(conn,remotePath)) {
-			return null;
+			return false;
 		}
 
+		boolean downloadSucc = false;
 		try {
 			InputStream stream = conn.getChannel().get(fileName);
 			if(null != stream) {
-				return IOUtils.toByteArray(stream);
+				IOUtils.copy(stream, os);
+				os.flush();
+				downloadSucc = true;
 			}
-			return null;
 		} catch (Exception e) {
 			log.error("download file failed", e);
-			return null;
 		} finally {
-			//conn.disConnect();
+			conn.disConnect();
 		}
+		return downloadSucc;
 	}
-
 
 	/**
 	 * 切换工作目录
@@ -103,11 +97,17 @@ public class SftpUtil {
 	 * @return
 	 */
 	public static boolean changeDir(SftpConnection conn, String pathName) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return false;
+			}
+		}
 		if (StringUtils.isBlank(pathName)) {
 			log.debug("invalid pathName");
 			return false;
 		}
-
 		try {
 			conn.getChannel().cd(pathName.replaceAll("\\\\", "/"));
 			log.debug("directory successfully changed,current dir=" + conn.getChannel().pwd());
@@ -130,7 +130,14 @@ public class SftpUtil {
 	 * 切换到根目录
 	 * @return
 	 */
-	public boolean changeToHomeDir(SftpConnection conn) {
+	public static boolean changeToHomeDir(SftpConnection conn) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return false;
+			}
+		}
 		String homeDir = null;
 		try {
 			homeDir = conn.getChannel().getHome();
@@ -147,6 +154,13 @@ public class SftpUtil {
 	 * @return
 	 */
 	public static boolean makeDir(SftpConnection conn,String dirName) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return false;
+			}
+		}
 		try {
 			String[] dirs = dirName.split("/");
 			StringBuffer dirPath = new StringBuffer("/");
@@ -176,7 +190,14 @@ public class SftpUtil {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public boolean delDir(SftpConnection conn,String dirName) {
+	public static boolean delDir(SftpConnection conn,String dirName) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return false;
+			}
+		}
 		if (!changeDir(conn, dirName)) {
 			return false;
 		}
@@ -219,7 +240,14 @@ public class SftpUtil {
 	 * @param fileName 文件名
 	 * @return boolean
 	 */
-	public boolean delFile(SftpConnection conn,String fileName) {
+	public static boolean delFile(SftpConnection conn,String fileName) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return false;
+			}
+		}
 		if (fileName == null || fileName.trim().equals("")) {
 			log.debug("invalid filename");
 			return false;
@@ -239,7 +267,7 @@ public class SftpUtil {
 	 * 当前目录下文件及文件夹名称列表
 	 * @return String[]
 	 */
-	public String[] ls(SftpConnection conn) {
+	public static String[] ls(SftpConnection conn) {
 		return list(conn, Filter.ALL);
 	}
 
@@ -247,7 +275,14 @@ public class SftpUtil {
 	 * 指定目录下文件及文件夹名称列表
 	 * @return String[]
 	 */
-	public String[] ls(SftpConnection conn,String pathName) {
+	public static String[] ls(SftpConnection conn,String pathName) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return new String[0];
+			}
+		}
 		String currentDir = currentDir(conn);
 		if (!changeDir(conn, pathName)) {
 			return new String[0];
@@ -272,12 +307,18 @@ public class SftpUtil {
 	 * 指定目录下文件名称列表
 	 * @return String[]
 	 */
-	public String[] lsFiles(SftpConnection conn,String pathName) {
+	public static String[] lsFiles(SftpConnection conn,String pathName) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return new String[0];
+			}
+		}
 		String currentDir = currentDir(conn);
 		if (!changeDir(conn, pathName)) {
 			return new String[0];
 		}
-		;
 		String[] result = list(conn, Filter.FILE);
 		if (!changeDir(conn, currentDir)) {
 			return new String[0];
@@ -289,7 +330,7 @@ public class SftpUtil {
 	 * 当前目录下文件夹名称列表
 	 * @return String[]
 	 */
-	public String[] lsDirs(SftpConnection conn) {
+	public static String[] lsDirs(SftpConnection conn) {
 		return list(conn, Filter.DIR);
 	}
 
@@ -297,12 +338,18 @@ public class SftpUtil {
 	 * 指定目录下文件夹名称列表
 	 * @return String[]
 	 */
-	public String[] lsDirs(SftpConnection conn,String pathName) {
+	public static String[] lsDirs(SftpConnection conn,String pathName) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return new String[0];
+			}
+		}
 		String currentDir = currentDir(conn);
 		if (!changeDir(conn, pathName)) {
 			return new String[0];
 		}
-		;
 		String[] result = list(conn, Filter.DIR);
 		if (!changeDir(conn, currentDir)) {
 			return new String[0];
@@ -315,7 +362,7 @@ public class SftpUtil {
 	 * @param name 名称
 	 * @return boolean
 	 */
-	public boolean exist(SftpConnection conn,String name) {
+	public static boolean exist(SftpConnection conn,String name) {
 		return exist(ls(conn), name);
 	}
 
@@ -325,7 +372,7 @@ public class SftpUtil {
 	 * @param name 名称
 	 * @return boolean
 	 */
-	public boolean exist(SftpConnection conn, String path, String name) {
+	public static boolean exist(SftpConnection conn, String path, String name) {
 		return exist(ls(conn, path), name);
 	}
 
@@ -344,7 +391,7 @@ public class SftpUtil {
 	 * @param name 文件名
 	 * @return boolean
 	 */
-	public boolean existFile(SftpConnection conn,String path, String name) {
+	public static boolean existFile(SftpConnection conn,String path, String name) {
 		return exist(lsFiles(conn,path), name);
 	}
 
@@ -353,7 +400,7 @@ public class SftpUtil {
 	 * @param name 文件夹名称
 	 * @return boolean
 	 */
-	public boolean existDir(SftpConnection conn,String name) {
+	public static boolean existDir(SftpConnection conn,String name) {
 		return exist(lsDirs(conn), name);
 	}
 
@@ -372,6 +419,13 @@ public class SftpUtil {
 	 * @return String
 	 */
 	public static String currentDir(SftpConnection conn) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return null;
+			}
+		}
 		try {
 			return conn.getChannel().pwd();
 		} catch (SftpException e) {
@@ -397,6 +451,13 @@ public class SftpUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	private static String[] list(SftpConnection conn,Filter filter) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return new String[0];
+			}
+		}
 		Vector<LsEntry> list = null;
 		try {
 			//ls方法会返回两个特殊的目录，当前目录(.)和父目录(..)
@@ -439,6 +500,13 @@ public class SftpUtil {
 	 * @return String
 	 */
 	private static String homeDir(SftpConnection conn) {
+		//登录
+		if(!conn.getConnnected()) {
+			boolean loginSucc = conn.connect();
+			if(!loginSucc){
+				return null;
+			}
+		}
 		try {
 			return conn.getChannel().getHome();
 		} catch (SftpException e) {
