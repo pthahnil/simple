@@ -10,9 +10,9 @@ import lombok.Getter;
 @Getter
 public enum ResultAccumulateType {
 	REJECT("rej", "结果互斥，选其一（适用于任何情况）"),
-	ACCUMULATE("acc", "结果积累，相加（适用于number, 适用于or）"),
-	MAX_VAL("max", "取大值"),
-	MIN_VAL("min", "取小值"),
+	SUM("sum", "结果积累，相加（适用于number, 适用于or）"),
+	MAX("max", "取大值"),
+	MIN("min", "取小值"),
 	;
 	private String type;
 	private String desc;

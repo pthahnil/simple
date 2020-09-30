@@ -30,7 +30,7 @@ public class SimpleRule implements Serializable {
 	 * 子规则的数据格式
 	 * @see DataTypeEnum
 	 */
-	private String dateType;
+	private String dataType;
 
 	/** 通过后的预估值 */
 	private String estimatedValue;
