@@ -35,7 +35,7 @@ public class SimpleRuleUnit implements Serializable {
 	private String estimatedValue;
 
 	/** 一个unit内所有的规则 */
-	private List<SimpleRule> rules = new ArrayList<>();
+	private List<SimpleRule> rules;
 
 	/** 规则集结果 */
 	private SimpleRuleUnitResult ruleUnitResult = new SimpleRuleUnitResult();
@@ -72,6 +72,9 @@ public class SimpleRuleUnit implements Serializable {
 		if(null == rule){
 			return;
 		}
+		if(rules == null) {
+			rules = new ArrayList<>();
+		}
 		String ruledataType = rule.getDataType();
 
 		if(StringUtils.isBlank(ruledataType)){
@@ -79,11 +82,11 @@ public class SimpleRuleUnit implements Serializable {
 		} else if(StringUtils.isNotBlank(ruledataType) && !ruledataType.equals(this.dataType)){
 			throw new Exception("dataType uncompatable");
 		}
-		
+
 		rules.add(rule);
 	}
 
-	private void setRules(List<SimpleRule> rules) {
+	public void setRules(List<SimpleRule> rules) {
 		this.rules = rules;
 	}
 }
