@@ -13,8 +13,6 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @description:
@@ -24,9 +22,6 @@ import java.util.regex.Pattern;
 @Slf4j
 public class CsvUtils {
 
-	private static final Pattern pattern = Pattern.compile("\"{1}\\d+([,]\\d{3})*([.]\\d*)\"{1}");
-
-	private static final Pattern numPattern = Pattern.compile(".\\d+");
 	/**
 	 * 读取文件内容
 	 * @param stream
@@ -36,15 +31,9 @@ public class CsvUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static <T> List<T> read(InputStream stream, Class<T> clazz, Integer headerIndex, String encoding) throws Exception {
+	public static <T> List<T> read(InputStream stream, Class<T> clazz, String encoding, String seperator) throws Exception {
 		if(null == stream){
 			throw new Exception("csv文件为空");
-		}
-		if(null == headerIndex){
-			headerIndex = 0;
-		}
-		if(headerIndex < 0){
-			throw new Exception("headerIndex 必须为正数");
 		}
 		List<String> allInfos = IOUtils.readLines(stream, encoding);
 		if(CollectionUtils.isEmpty(allInfos) || allInfos.size() <= 1){
@@ -54,13 +43,12 @@ public class CsvUtils {
 		//列标题和字段段颖关系
 		Map<String, String> columnFieldMap = columnFieldMap(clazz);
 
-
-		String headerLine = allInfos.get(headerIndex);
+		String headerLine = allInfos.get(0);
 
 		//列标题和列索引对应关系
-		Map<Integer, String> columnIndexMap = columnIndexMap(headerLine);
+		Map<Integer, String> columnIndexMap = columnIndexMap(headerLine, seperator);
 
-		List<String> infos = allInfos.subList(headerIndex + 1, allInfos.size());
+		List<String> infos = allInfos.subList(1, allInfos.size());
 		JSONArray array = new JSONArray();
 
 
@@ -69,25 +57,13 @@ public class CsvUtils {
 				continue;
 			}
 
-			Matcher matcher = pattern.matcher(info);
-			while (matcher.find()){
-				String number = matcher.group();
-				String cleanNumber = number.replace(",", "").replace("\"", "");
-				info = info.replace(number, cleanNumber);
-			}
-
-			String[] infoSegs = info.split(",");
+			String[] infoSegs = info.split(seperator);
 			JSONObject json = new JSONObject();
 			for (int i = 0; i < infoSegs.length; i++) {
 				String columnName = columnIndexMap.get(i);
 				String fieldName = columnFieldMap.get(columnName);
 				String value = infoSegs[i].trim();
 
-				//.00， .01 这种
-				Matcher numMatcher = numPattern.matcher(value);
-				if(numMatcher.matches()){
-					value = "0" + value;
-				}
 				json.put(fieldName, value);
 			}
 			array.add(json);
@@ -103,13 +79,13 @@ public class CsvUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	private static Map<Integer, String> columnIndexMap(String headerLine) throws Exception {
+	private static Map<Integer, String> columnIndexMap(String headerLine, String seperator) throws Exception {
 
 		if(StringUtils.isBlank(headerLine)){
 			throw new Exception("表头为空");
 		}
 
-		String[] headerSegs = headerLine.split(",");
+		String[] headerSegs = headerLine.split(seperator);
 		Map<Integer, String> headerMap = new HashMap<>();
 		for (int i = 0; i < headerSegs.length; i++) {
 			headerMap.put(i, headerSegs[i].trim());
