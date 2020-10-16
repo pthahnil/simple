@@ -7,6 +7,6 @@ import org.apache.http.HttpEntity;
  */
 public interface Extrator<T> {
 
-	T extract(HttpEntity entity) throws Exception;
+	T extract(HttpEntity entity, String charSet) throws Exception;
 
 }

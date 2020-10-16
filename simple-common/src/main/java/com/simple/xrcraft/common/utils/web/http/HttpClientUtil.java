@@ -4,6 +4,7 @@ import com.simple.xrcraft.common.constants.HttpConstants;
 import com.simple.xrcraft.common.utils.bean.JsonUtils;
 import com.simple.xrcraft.common.utils.web.http.extrator.ExtractorFactory;
 import com.simple.xrcraft.common.utils.web.http.extrator.Extrator;
+import com.simple.xrcraft.common.utils.web.http.model.KeyStoreProps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -79,13 +80,13 @@ public class HttpClientUtil {
 	private static int CONNECT_TIMEOUT = 20 * 1000;
 
 	//默认连接池最大=====基本请求都用默认，所以线程数设大一点
-	private static int POOL_MAX_DEFAULT = 100;
+	private static int POOL_MAX_DEFAULT = 20;
 
 	//默认单个地址连接最大
-	private static int ROUTER_MAX_DEFAULT = 20;
+	private static int ROUTER_MAX_DEFAULT = 5;
 
 	//连接池最大
-	private static int POOL_MAX_CT = 50;
+	private static int POOL_MAX_CT = 10;
 
 	//单个地址连接最大
 	private static int ROUTER_MAX_CT = 5;
@@ -110,25 +111,25 @@ public class HttpClientUtil {
 	 * @throws Exception
 	 */
 	public static String postJson(String url, Map<String, Object> params) throws Exception {
-		return postJson(url, params, null, null, null, null, String.class);
+		return postJson(url, params, null, null, String.class);
 	}
 
 	public static <T> T postJson(String url, Map<String, Object> params, Class<T> clazz) throws Exception {
-		return postJson(url, params, null, null, null, null, clazz);
+		return postJson(url, params, null, null, clazz);
 	}
 
 	public static <T> T postJson(String url, Map<String, Object> params, Map<String, String> headers, Class<T> clazz) throws Exception {
-		return postJson(url, params, headers, null, null, null, clazz);
+		return postJson(url, params, headers, null, clazz);
 	}
 
-	public static <T> T postJson(String url, Map<String, Object> params, Map<String, String> headers, KeyStore keyStore, String pwd, String keyStoreName, Class<T> clazz) throws Exception {
+	public static <T> T postJson(String url, Map<String, Object> params, Map<String, String> headers, KeyStoreProps props, Class<T> clazz) throws Exception {
 
 		String json = JsonUtils.toJson(params);
 		StringEntity entity = new StringEntity(json, HttpConstants.CHARSET_UTF8);// 解决中文乱码问题
 		entity.setContentEncoding(HttpConstants.CHARSET_UTF8);
 		entity.setContentType("application/json");
 
-		return post(url, headers, entity, keyStore, pwd, keyStoreName, clazz);
+		return post(url, headers, entity, props, clazz);
 	}
 
 	/**
@@ -139,18 +140,18 @@ public class HttpClientUtil {
 	 * @throws Exception
 	 */
 	public static String postString(String url, String content) throws Exception {
-		return postString(url, content, null, null, null, null, String.class);
+		return postString(url, content, null, null, String.class);
 	}
 
 	public static <T> T postString(String url, String content, Class<T> clazz) throws Exception {
-		return postString(url, content, null, null, null, null, clazz);
+		return postString(url, content, null, null, clazz);
 	}
 
 	public static <T> T postString(String url, String content, Map<String, String> headers, Class<T> clazz) throws Exception {
-		return postString(url, content, headers, null, null, null, clazz);
+		return postString(url, content, headers, null, clazz);
 	}
 
-	public static <T> T postString(String url, String content, Map<String, String> headers, KeyStore keyStore, String pwd, String keyStoreName, Class<T> clazz) throws Exception {
+	public static <T> T postString(String url, String content, Map<String, String> headers, KeyStoreProps props, Class<T> clazz) throws Exception {
 
 		if(StringUtils.isBlank(content)){
 			return null;
@@ -159,7 +160,7 @@ public class HttpClientUtil {
 		StringEntity entity = new StringEntity(content, HttpConstants.CHARSET_UTF8);
 		entity.setContentEncoding(HttpConstants.CHARSET_UTF8);
 
-		return post(url, headers, entity, keyStore, pwd, keyStoreName, clazz);
+		return post(url, headers, entity, props, clazz);
 	}
 
 	/**
@@ -170,22 +171,22 @@ public class HttpClientUtil {
 	 * @throws Exception
 	 */
 	public static String postForm(String url, Map<String, Object> params) throws Exception {
-		return postForm(url, params, null, null, null, null, String.class);
+		return postForm(url, params, null, null, String.class);
 	}
 
 	public static <T> T postForm(String url, Map<String, Object> params, Class<T> clazz) throws Exception {
-		return postForm(url, params, null, null, null, null, clazz);
+		return postForm(url, params, null, null, clazz);
 	}
 
 	public static <T> T postForm(String url, Map<String, Object> params, Map<String, String> headers, Class<T> clazz) throws Exception {
-		return postForm(url, params, headers, null, null, null, clazz);
+		return postForm(url, params, headers, null, clazz);
 	}
 
-	public static <T> T postForm(String url, Map<String, Object> params, Map<String, String> headers, KeyStore keyStore, String pwd, String keyStoreName, Class<T> clazz) throws Exception {
+	public static <T> T postForm(String url, Map<String, Object> params, Map<String, String> headers, KeyStoreProps props, Class<T> clazz) throws Exception {
 
 		HttpEntity entity = getEncodedFormEntity(params);
 
-		return post(url, headers, entity, keyStore, pwd, keyStoreName, clazz);
+		return post(url, headers, entity, props, clazz);
 	}
 
 	/**
@@ -193,15 +194,13 @@ public class HttpClientUtil {
 	 * @param url
 	 * @param headers
 	 * @param entity
-	 * @param keyStore 信任证书
-	 * @param pwd rsa提取密码
-	 * @param keyStoreName keyStore别名，若有，切勿随意些，否则重复的话就死翘了
+	 * @param props 信任证书相关参数
 	 * @param clazz
 	 * @param <T>
 	 * @return
 	 * @throws Exception
 	 */
-	public static <T> T post(String url, Map<String, String> headers, HttpEntity entity, KeyStore keyStore, String pwd, String keyStoreName, Class<T> clazz) throws Exception {
+	public static <T> T post(String url, Map<String, String> headers, HttpEntity entity, KeyStoreProps props, Class<T> clazz) throws Exception {
 
 		if(StringUtils.isBlank(url)){
 			return null;
@@ -212,7 +211,7 @@ public class HttpClientUtil {
 
 		HttpEntity responseEntity = null;
 		try {
-			CloseableHttpClient client = getClient(keyStore, pwd, keyStoreName);
+			CloseableHttpClient client = getClient(props);
 			method.setEntity(entity);
 
 			CloseableHttpResponse response = client.execute(method);
@@ -237,31 +236,31 @@ public class HttpClientUtil {
 	}
 
 	public static String doGet(String url) throws Exception {
-		return doGet(url, null, null, null, null, null, String.class, true);
+		return doGet(url, null, null, null, String.class, true);
 	}
 
 	public static <T> T doGet(String url, Class<T> clazz) throws Exception {
-		return doGet(url, null, null, null, null, null, clazz, true);
+		return doGet(url, null, null, null, clazz, true);
 	}
 
 	public static String doGet(String url, Map<String, Object> params) throws Exception {
-		return doGet(url, params, null, null, null, null, String.class, true);
+		return doGet(url, params, null, null, String.class, true);
 	}
 
 	public static String doGet(String url, Map<String, Object> params, boolean raw) throws Exception {
-		return doGet(url, params, null, null, null, null, String.class, raw);
+		return doGet(url, params, null, null, String.class, raw);
 	}
 
 	public static <T> T doGet(String url, Map<String, Object> params, Class<T> clazz) throws Exception {
-		return doGet(url, params, null, null, null, null, clazz, true);
+		return doGet(url, params, null, null, clazz, true);
 	}
 
 	public static <T> T doGet(String url, Map<String, Object> params, Class<T> clazz, boolean raw) throws Exception {
-		return doGet(url, params, null, null, null, null, clazz, raw);
+		return doGet(url, params, null, null, clazz, raw);
 	}
 
 	public static <T> T doGet(String url, Map<String, Object> params, Map<String, String> headers, Class<T> clazz) throws Exception {
-		return doGet(url, params, headers, null, null, null, clazz, true);
+		return doGet(url, params, headers, null, clazz, true);
 	}
 
 	/**
@@ -272,7 +271,7 @@ public class HttpClientUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static <T> T doGet(String url, Map<String, Object> params, Map<String, String> headers, KeyStore keyStore, String pwd, String keyStoreName, Class<T> clazz, boolean raw) throws Exception {
+	public static <T> T doGet(String url, Map<String, Object> params, Map<String, String> headers, KeyStoreProps props, Class<T> clazz, boolean raw) throws Exception {
 
 		if(StringUtils.isBlank(url)){
 			return null;
@@ -285,7 +284,7 @@ public class HttpClientUtil {
 		setHeaders(headers, method);
 		HttpEntity responseEntity = null;
 		try {
-			CloseableHttpClient client = getClient(keyStore, pwd, keyStoreName);
+			CloseableHttpClient client = getClient(props);
 			CloseableHttpResponse response = client.execute(method);
 
 			if(null != response){
@@ -324,7 +323,7 @@ public class HttpClientUtil {
 			log.error("接口调用异常，返回码:{},错误信息:{}" , statusCode, info);
 			throw new Exception(info);
 		} else {
-			T t = extrator.extract(responseEntity);
+			T t = extrator.extract(responseEntity, HttpConstants.CHARSET_UTF8);
 			return t;
 		}
 	}
@@ -441,7 +440,7 @@ public class HttpClientUtil {
 	 * @throws Exception
 	 */
 	public static CloseableHttpClient getClient() throws Exception {
-		return getClient(null, null, null);
+		return getClient(null);
 	}
 
 	/**
@@ -449,16 +448,25 @@ public class HttpClientUtil {
 	 * 基本配置，例如 超时，跳转
 	 * @return
 	 */
-	public static CloseableHttpClient getClient(KeyStore keyStore, String certPwd, String keyStoreName) throws Exception {
+	public static CloseableHttpClient getClient(KeyStoreProps props) throws Exception {
 
-		return getClient(keyStore, certPwd, keyStoreName, null);
+		return getClient(props, null);
 	}
 
 	/**
 	 * 基本配置，例如 超时，跳转
 	 * @return
 	 */
-	public static CloseableHttpClient getClient(KeyStore keyStore, String certPwd, String keyStoreName, BasicCookieStore cookieStore) throws Exception {
+	public static CloseableHttpClient getClient(KeyStoreProps props, BasicCookieStore cookieStore) throws Exception {
+		KeyStore keyStore = null;
+		String keyStoreName = null;
+		String certPwd = null;
+
+		if(null != props){
+			keyStore = props.getKeyStore();
+			keyStoreName = props.getKeyStoreAlias();
+			certPwd = props.getCertPwd();
+		}
 
 		boolean isDefault = null == keyStore;
 

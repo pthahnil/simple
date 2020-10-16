@@ -9,10 +9,10 @@ import org.apache.http.util.EntityUtils;
 public class StringExtrator implements Extrator<String> {
 
 	@Override
-	public String extract(HttpEntity entity)  throws Exception {
+	public String extract(HttpEntity entity, String charSet)  throws Exception {
 		String resp = null;
 		if(null != entity){
-			resp = EntityUtils.toString(entity, "utf-8");
+			resp = EntityUtils.toString(entity, charSet);
 		}
 		return resp;
 	}

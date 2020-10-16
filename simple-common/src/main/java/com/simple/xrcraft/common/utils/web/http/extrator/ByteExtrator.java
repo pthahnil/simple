@@ -9,7 +9,7 @@ import org.apache.http.util.EntityUtils;
 public class ByteExtrator implements Extrator<byte[]> {
 
 	@Override
-	public byte[] extract(HttpEntity entity) throws Exception {
+	public byte[] extract(HttpEntity entity, String charSet) throws Exception {
 		byte[] resp = new byte[0];
 		if(null != entity){
 			resp = EntityUtils.toByteArray(entity);
