@@ -267,6 +267,45 @@ public class DateUtils {
 		return Date.from(instant);
 	}
 
+	/**
+	 * 月初
+	 * @param date
+	 * @return
+	 */
+	public static Date getStartOfMonth(Date date) {
+		if(null == date){
+			return null;
+		}
+		Instant instant = date.toInstant();
+		LocalDateTime time = LocalDateTime.ofInstant(instant, sysZone);
+
+		LocalDate dt = time.toLocalDate();
+		dt = dt.withDayOfMonth(1);
+
+		time = LocalDateTime.of(dt, LocalTime.MIN);
+
+		return lc2Dt(time);
+	}
+
+	/**
+	 * 月末
+	 * @param date
+	 * @return
+	 */
+	public static Date getEndOfMonth(Date date) {
+		if(null == date){
+			return null;
+		}
+		Instant instant = date.toInstant();
+		LocalDateTime time = LocalDateTime.ofInstant(instant, sysZone);
+
+		LocalDate dt = time.toLocalDate();
+		dt = dt.withDayOfMonth(dt.lengthOfMonth());
+
+		time = LocalDateTime.of(dt, LocalTime.MAX);
+
+		return lc2Dt(time);
+	}
 
 }
 
