@@ -2,6 +2,7 @@ package com.simple.xrcraft.common.utils.web.http;
 
 import com.simple.xrcraft.common.utils.bean.JsonUtils;
 import com.simple.xrcraft.common.utils.web.http.interceptor.RequestHeaderInterceptor;
+import com.simple.xrcraft.common.utils.web.http.model.KeyStoreProps;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +45,7 @@ public class RestTemplateUtil {
 	}
 
 	public static String postJson(String url, Map<String, Object> params, Map<String, String> headerMap) throws Exception {
-		return postJson(url, params, headerMap, null, null, null);
+		return postJson(url, params, headerMap, null);
 	}
 
 	/**
@@ -55,7 +56,7 @@ public class RestTemplateUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String postJson(String url, Map<String, Object> params, Map<String, String> headerMap, KeyStore keyStore, String keyStorePwd, String keyStoreName) throws Exception {
+	public static String postJson(String url, Map<String, Object> params, Map<String, String> headerMap, KeyStoreProps props) throws Exception {
 
 		if(StringUtils.isBlank(url)){
 			return null;
@@ -65,7 +66,7 @@ public class RestTemplateUtil {
 		}
 		String requestJson = JsonUtils.toJson(params);
 
-		RestTemplate template = getTemplate(keyStore, keyStorePwd, keyStoreName);
+		RestTemplate template = getTemplate(props);
 		//header填充
 		HttpHeaders headers = getheaders(headerMap);
 		headers.add("Content-Type", "application/json; charset=UTF-8");
@@ -88,7 +89,7 @@ public class RestTemplateUtil {
 	}
 
 	public static String postForm(String url, Map<String, Object> params, Map<String, String> headerMap) throws Exception {
-		return postForm(url, params, headerMap, null, null, null);
+		return postForm(url, params, headerMap, null);
 	}
 
 	/**
@@ -98,13 +99,13 @@ public class RestTemplateUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String postForm(String url, Map<String, Object> params, Map<String, String> headerMap, KeyStore keyStore, String keyStorePwd, String keyStoreName) throws Exception {
+	public static String postForm(String url, Map<String, Object> params, Map<String, String> headerMap, KeyStoreProps props) throws Exception {
 
 		if(StringUtils.isBlank(url)){
 			return null;
 		}
 
-		RestTemplate template = getTemplate(keyStore, keyStorePwd, keyStoreName);
+		RestTemplate template = getTemplate(props);
 
 		if(MapUtils.isEmpty(params)){
 			return null;
@@ -123,11 +124,11 @@ public class RestTemplateUtil {
 	}
 
 	public static String postString(String url, String content) throws Exception {
-		return postString(url, content, null, null, null, null);
+		return postString(url, content, null, null);
 	}
 
 	public static String postString(String url, String content, Map<String, String> headerMap) throws Exception {
-		return postString(url, content, headerMap, null, null, null);
+		return postString(url, content, headerMap, null);
 	}
 
 	/**
@@ -135,18 +136,16 @@ public class RestTemplateUtil {
 	 * @param url
 	 * @param content
 	 * @param headerMap
-	 * @param keyStore
-	 * @param keyStorePwd
-	 * @param keyStoreName
+	 * @param props
 	 * @return
 	 * @throws Exception
 	 */
-	public static String postString(String url, String content, Map<String, String> headerMap, KeyStore keyStore, String keyStorePwd, String keyStoreName) throws Exception {
+	public static String postString(String url, String content, Map<String, String> headerMap, KeyStoreProps props) throws Exception {
 		if(StringUtils.isBlank(url)){
 			return null;
 		}
 
-		RestTemplate template = getTemplate(keyStore, keyStorePwd, keyStoreName);
+		RestTemplate template = getTemplate(props);
 
 		if(StringUtils.isBlank(content)){
 			return null;
@@ -159,11 +158,11 @@ public class RestTemplateUtil {
 	}
 
 	public static String doGet(String url, Map<String, Object> params) throws Exception {
-		return doGet(url, params, null, null, null, null);
+		return doGet(url, params, null, null);
 	}
 
 	public static String doGet(String url, Map<String, Object> params, Map<String, String> headerParams) throws Exception {
-		return doGet(url, params, headerParams, null, null, null);
+		return doGet(url, params, headerParams, null);
 	}
 
 	/**
@@ -173,7 +172,7 @@ public class RestTemplateUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String doGet(String url, Map<String, Object> params, Map<String, String> headerParams, KeyStore keyStore, String keyStorePwd, String keyStoreName) throws Exception {
+	public static String doGet(String url, Map<String, Object> params, Map<String, String> headerParams, KeyStoreProps props) throws Exception {
 
 		if(StringUtils.isBlank(url)){
 			return null;
@@ -183,7 +182,7 @@ public class RestTemplateUtil {
 			url = HttpClientUtil.assembleGetUrl(url, params).toString();
 		}
 
-		RestTemplate template = getTemplate(keyStore, keyStorePwd, keyStoreName);
+		RestTemplate template = getTemplate(props);
 		//加header
 		List<ClientHttpRequestInterceptor> interceptors = MapUtils.isNotEmpty(headerParams) ?
 				headerParams.entrySet()
@@ -231,9 +230,9 @@ public class RestTemplateUtil {
 	 * 是否ssl
 	 * @return
 	 */
-	public static RestTemplate getTemplate(KeyStore keyStore, String keyStorePwd, String keyStoreName) throws Exception {
+	public static RestTemplate getTemplate(KeyStoreProps props) throws Exception {
 
-		CloseableHttpClient client = HttpClientUtil.getClient(keyStore, keyStorePwd, keyStoreName);
+		CloseableHttpClient client = HttpClientUtil.getClient(props);
 		ClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(client);
 
 		return new RestTemplate(factory);
