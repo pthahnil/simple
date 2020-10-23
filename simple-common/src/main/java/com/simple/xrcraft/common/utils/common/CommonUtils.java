@@ -6,6 +6,11 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.Semaphore;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -104,5 +109,54 @@ public class CommonUtils {
 		String path = CommonUtils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 		File file = new File(path);
 		return file.getParentFile();
+	}
+
+	/**
+	 * 异步转换
+	 * @param list
+	 * @param function
+	 * @param executor
+	 * @param bucketSize
+	 * @param <C>
+	 * @param <T>
+	 * @return
+	 */
+	public static <C,T> List<T> asyncConvert(List<C> list, Function<C, T> function, Executor executor, int bucketSize){
+		if(CollectionUtils.isEmpty(list)){
+			return null;
+		}
+		CountDownLatch latch = new CountDownLatch(list.size());
+		Semaphore semaphore = new Semaphore(bucketSize);
+
+		List<FutureTask<T>> tasks = new ArrayList<>();
+		for (C c : list) {
+			FutureTask<T> task = new FutureTask<T>(() -> {
+				try {
+					semaphore.acquire();
+
+					return function.apply(c);
+				} catch (Exception e){} finally {
+					semaphore.release();
+					latch.countDown();
+				}
+				return null;
+			});
+
+			executor.execute(task);
+			tasks.add(task);
+		}
+		try {
+			latch.await();
+		} catch (Exception e){}
+
+		return tasks.stream()
+				.map(task -> {
+					try {
+						return task.get();
+					} catch (Exception e) { }
+					return null;
+				})
+				.filter(t -> null != t)
+				.collect(Collectors.toList());
 	}
 }
