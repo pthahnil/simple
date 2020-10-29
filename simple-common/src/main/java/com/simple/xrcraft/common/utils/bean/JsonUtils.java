@@ -44,10 +44,10 @@ public class JsonUtils {
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.configure(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
-        //空字符串转object
+        //allow null to object
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
 
-        //java 8 日期时间格式
+        //java 8 time stuff
         JavaTimeModule javaTimeModule = new JavaTimeModule();
         javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         javaTimeModule.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
@@ -55,23 +55,13 @@ public class JsonUtils {
         mapper.registerModule(javaTimeModule);
     }
 
-
     /**
      * bean to json
-     * @param obj
+     * @param bean
      * @return
      */
-    public static String toJson(Object obj) {
-        StringWriter sw = new StringWriter();
-        try {
-            JsonGenerator gen = new JsonFactory().createGenerator(sw);
-            mapper.writeValue(gen, obj);
-            gen.close();
-            return sw.toString();
-        } catch (IOException e) {
-            log.error("obj to string error ");
-            return null;
-        }
+    public static String toJson(Object bean) {
+        return toJson(bean, null);
     }
 
     /**
@@ -80,20 +70,22 @@ public class JsonUtils {
      * @param ignoreVar
      * @return
      */
-    public static String toJson(Object bean, String... ignoreVar) {
+    public static String toJson(Object bean, String ... ignoreVar) {
 
         if(null == bean){
             return null;
         }
-        JsonNode rootNode = null;
         StringWriter sw = new StringWriter();
         try {
-            rootNode = mapper.valueToTree(bean);
+            JsonNode rootNode = null;
+            boolean haveIgnoredVar = null != ignoreVar && ignoreVar.length > 0;
+            if(haveIgnoredVar){
+                rootNode = mapper.valueToTree(bean);
+                remove(rootNode, ignoreVar);
+            }
 
-            remove(rootNode, ignoreVar);
-
-            JsonGenerator jsonGenerator = new JsonFactory().createGenerator(sw);
-            mapper.writeValue(jsonGenerator,rootNode);
+            JsonGenerator gen = new JsonFactory().createGenerator(sw);
+            mapper.writeValue(gen, haveIgnoredVar ? rootNode : bean);
         } catch (Exception e) {
             log.error("转换异常");
             return null;
@@ -102,7 +94,7 @@ public class JsonUtils {
     }
 
     /**
-     * 级联删除node
+     * cascade remove node from json string
      * @param node
      * @param ignoreVar
      */
@@ -135,10 +127,7 @@ public class JsonUtils {
      * @throws IOException
      */
     public static Map<String, Object> json2Map(String jsonStr) throws IOException {
-        if (StringUtils.isBlank(jsonStr)) {
-            return Collections.emptyMap();
-        }
-        return mapper.readValue(jsonStr, Map.class);
+        return jsonToObject(jsonStr, Map.class);
     }
 
     /**
@@ -150,10 +139,7 @@ public class JsonUtils {
      * @throws IOException
      */
     public static <T> T jsonToObject(String jsonStr, Class<T> beanClass) throws IOException {
-        if (StringUtils.isBlank(jsonStr)) {
-            return null;
-        }
-        return mapper.readValue(jsonStr, beanClass);
+        return jsonToObject(jsonStr, null, beanClass);
     }
 
     /**
@@ -170,62 +156,49 @@ public class JsonUtils {
         if (StringUtils.isBlank(jsonStr)) {
             return null;
         }
-        return mapper.readValue(jsonStr.getBytes(charset), beanClass);
+        return mapper.readValue(StringUtils.isBlank(charset) ? jsonStr.getBytes() : jsonStr.getBytes(charset), beanClass);
     }
 
     /**
      * json to collection
      * @param jsonStr
-     * @param collectionClass
-     * @param elementClasses
+     * @param cClass
+     * @param eClasses
      * @return
      * @throws IOException
      */
-    public static Object jsonToCollection(String jsonStr, Class<?> collectionClass,
-            Class<?>... elementClasses) throws IOException {
-        if (StringUtils.isBlank(jsonStr)) {
-            return null;
-        }
-        JavaType javaType = getParametrizedType(collectionClass, elementClasses);
-        return mapper.readValue(jsonStr, javaType);
+    public static <C, E> C jsonToCollection(String jsonStr, Class<C> cClass,
+            Class<E> eClasses) throws IOException {
+       return jsonToCollection(jsonStr, null, cClass, eClasses);
     }
 
     /**
      * json to collection
      * @param jsonStr
-     * @param encoding
-     * @param collectionClass
-     * @param elementClasses
+     * @param charset
+     * @param cClass
+     * @param eClasses
      * @return
      * @throws IOException
      */
-    public static Object jsonToCollection(String jsonStr, String encoding,
-            Class<?> collectionClass, Class<?>... elementClasses) throws IOException {
+    public static <C, E> C jsonToCollection(String jsonStr, String charset,
+            Class<C> cClass,
+            Class<E> eClasses) throws IOException {
         if (StringUtils.isBlank(jsonStr)) {
             return null;
         }
-        JavaType javaType = getParametrizedType(collectionClass, elementClasses);
-        return mapper.readValue(jsonStr.getBytes(encoding), javaType);
+        JavaType javaType = getParametrizedType(cClass, eClasses);
+        return mapper.readValue(StringUtils.isBlank(charset) ? jsonStr.getBytes() : jsonStr.getBytes(charset), javaType);
     }
 
     /**
-     * 获取集合的JavaType
+     * assemble JavaType
      * @param parametrized
      * @param parameterClasses
      * @return
      */
     public static JavaType getParametrizedType(Class<?> parametrized, Class<?>... parameterClasses) {
         return mapper.getTypeFactory().constructParametricType(parametrized, parameterClasses);
-    }
-
-
-    public static String normalize(String jsonStr) {
-        if(StringUtils.isBlank(jsonStr)) {
-            return null;
-        }
-        return jsonStr.replace("\"{", "{").replace("}\"", "}")
-                .replace("\"[", "[").replace("]\"", "]")
-                .replaceAll("\\\\","");
     }
 
 }

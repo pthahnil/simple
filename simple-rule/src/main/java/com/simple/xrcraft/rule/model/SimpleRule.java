@@ -37,4 +37,13 @@ public class SimpleRule implements Serializable {
 
 	/** 执行结果 */
 	private SimpleRuleResult executeResult = new SimpleRuleResult();
+
+	public SimpleRule() {
+	}
+
+	public SimpleRule(String fact, String operation, String target) {
+		this.fact = fact;
+		this.operation = operation;
+		this.target = target;
+	}
 }
