@@ -5,6 +5,8 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Properties;
+
 /**
  * Created by pthahnil on 2019/3/28.
  */
@@ -31,7 +33,11 @@ public class MybatisPlusConfig {
 	@Bean
 	public PaginationInterceptor paginationInterceptor() {
 		PaginationInterceptor page = new PaginationInterceptor();
-		page.setDialectType("mysql");
+
+		Properties props = new Properties();
+		props.put("dialectType", "musql");
+
+		page.setProperties(props);
 		return page;
 	}
 
