@@ -1,6 +1,5 @@
 package com.simple.xrcraft.common.utils.web.http.model;
 
-import com.alibaba.fastjson.JSON;
 import com.simple.xrcraft.common.constants.HttpConstants;
 import com.simple.xrcraft.common.utils.web.http.model.entity.EntityBuilder;
 import com.simple.xrcraft.common.utils.web.http.model.entity.FormEntityBuilder;

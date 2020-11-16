@@ -73,6 +73,10 @@ public class RsaUtil {
 		return encrypt(content, key, DEFAULT_PADDING);
 	}
 
+	public static byte[] encrypt(byte[] content, PublicKey key) throws Exception {
+		return encrypt(content, key, DEFAULT_PADDING);
+	}
+
 	/**
 	 * 加密
 	 * @param content
@@ -97,6 +101,23 @@ public class RsaUtil {
 		return process(content, key, Cipher.ENCRYPT_MODE, paddingMod);
 	}
 
+	public static byte[] encrypt(byte[] content, PublicKey key, String paddingMod) throws Exception {
+		if(null == content){
+			return null;
+		}
+		if(null == key){
+			String info = "publicKey is empty";
+			log.info(info);
+			throw new RuntimeException(info);
+		}
+		if(StringUtils.isBlank(paddingMod)){
+			String info = "please choose a padding mod";
+			log.info(info);
+			throw new RuntimeException(info);
+		}
+		return process(content, key, Cipher.ENCRYPT_MODE, paddingMod);
+	}
+
 	/**
 	 * 解密
 	 * @param content
@@ -105,6 +126,10 @@ public class RsaUtil {
 	 * @throws Exception
 	 */
 	public static byte[] decrypt(byte[] content, byte[] key) throws Exception {
+		return decrypt(content, key, DEFAULT_PADDING);
+	}
+
+	public static byte[] decrypt(byte[] content, PrivateKey key) throws Exception {
 		return decrypt(content, key, DEFAULT_PADDING);
 	}
 
@@ -133,15 +158,24 @@ public class RsaUtil {
 		return process(content, key, Cipher.DECRYPT_MODE, paddingMod);
 	}
 
+	public static byte[] decrypt(byte[] content, PrivateKey key, String paddingMod) throws Exception {
+		if(null == content){
+			return null;
+		}
+		if(null == key){
+			String info = "privateKey is empty";
+			log.info(info);
+			throw new RuntimeException(info);
+		}
+		if(StringUtils.isBlank(paddingMod)){
+			String info = "please choose a padding mod";
+			log.info(info);
+			throw new RuntimeException(info);
+		}
+		return process(content, key, Cipher.DECRYPT_MODE, paddingMod);
+	}
 
-	/**
-	 * RSA算法分段加解密数据
-	 * @param data
-	 * @param keyBytes
-	 * @param opmode
-	 * @return
-	 * @throws Exception
-	 */
+
 	private static byte[] process(byte[] data, byte[] keyBytes, int opmode, String paddingMod) throws Exception {
 		KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
 
@@ -153,6 +187,20 @@ public class RsaUtil {
 		} else {
 			throw new Exception("不支持加解密之外的操作");
 		}
+
+		return process(data, key, opmode, paddingMod);
+	}
+
+	/**
+	 * RSA算法分段加解密数据
+	 * @param data
+	 * @param key
+	 * @param opmode
+	 * @return
+	 * @throws Exception
+	 */
+	private static byte[] process(byte[] data, Key key, int opmode, String paddingMod) throws Exception {
+
 		int keySize = getKeySize(key);
 
 		Cipher cipher = Cipher.getInstance(paddingMod);

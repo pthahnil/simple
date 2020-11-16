@@ -20,8 +20,6 @@ public class AESUtil {
 	 */
 	private static final String ALGORITHM = "AES";
 
-	private static final String DEFAULT_CHARSET = "UTF8";
-
 	private static final String DEFAULT_PADDING = PaddingMode.AES_ECB.getType();
 
 	/**
@@ -31,7 +29,7 @@ public class AESUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] seedEncrypt(byte[] data, String seed)
+	public static byte[] seedEncrypt(byte[] data, byte[] seed)
 			throws Exception {
 		return seedEncrypt(data, seed, DEFAULT_PADDING);
 	}
@@ -44,7 +42,7 @@ public class AESUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] seedEncrypt(byte[] data, String seed, String paddingMode)
+	public static byte[] seedEncrypt(byte[] data, byte[] seed, String paddingMode)
 			throws Exception {
 		byte[] key = genKeyWithSeed(seed);
 		byte[] ivKey = getIvKey(key, paddingMode);
@@ -58,7 +56,7 @@ public class AESUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] seedDecrypt(byte[] data, String seed)
+	public static byte[] seedDecrypt(byte[] data, byte[] seed)
 			throws Exception {
 		return seedDecrypt(data, seed, DEFAULT_PADDING);
 	}
@@ -71,7 +69,7 @@ public class AESUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] seedDecrypt(byte[] data, String seed, String paddingMode)
+	public static byte[] seedDecrypt(byte[] data, byte[] seed, String paddingMode)
 			throws Exception {
 		byte[] key = genKeyWithSeed(seed);
 		byte[] ivKey = getIvKey(key, paddingMode);
@@ -81,28 +79,27 @@ public class AESUtil {
 	/**
 	 * encrypt with key, no padding
 	 * @param data
-	 * @param encKey
+	 * @param key
 	 * @param iv
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] encrypt(byte[] data, String encKey, String iv)
+	public static byte[] encrypt(byte[] data, byte[] key, String iv)
 			throws Exception {
-		return encrypt(data, encKey, iv, DEFAULT_PADDING);
+		return encrypt(data, key, iv, DEFAULT_PADDING);
 	}
 
 	/**
 	 * encrypt with key, use padding
 	 * @param data
-	 * @param encKey
+	 * @param key
 	 * @param iv
 	 * @param paddingMode
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] encrypt(byte[] data, String encKey, String iv, String paddingMode)
+	public static byte[] encrypt(byte[] data, byte[] key, String iv, String paddingMode)
 			throws Exception {
-		byte[] key = encKey.getBytes(DEFAULT_CHARSET);
 		byte[] ivKey = StringUtils.isNotBlank(iv) ? getIvKey(iv.getBytes(), paddingMode) : null;
 
 		return process(data, key, ivKey, Cipher.ENCRYPT_MODE, paddingMode);
@@ -116,7 +113,7 @@ public class AESUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] decrypt(byte[] content, String encKey, String iv)
+	public static byte[] decrypt(byte[] content, byte[] encKey, String iv)
 			throws Exception {
 		return decrypt(content, encKey, iv, DEFAULT_PADDING);
 	}
@@ -130,11 +127,10 @@ public class AESUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] decrypt(byte[] content, String encKey, String iv, String paddingMode)
+	public static byte[] decrypt(byte[] content, byte[] encKey, String iv, String paddingMode)
 			throws Exception {
-		byte[] key = encKey.getBytes(DEFAULT_CHARSET);
 		byte[] ivKey = StringUtils.isNotBlank(iv) ? getIvKey(iv.getBytes(), paddingMode) : null;
-		return process(content, key, ivKey, Cipher.DECRYPT_MODE, paddingMode);
+		return process(content, encKey, ivKey, Cipher.DECRYPT_MODE, paddingMode);
 	}
 
 	/**
@@ -192,22 +188,11 @@ public class AESUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	private static byte[] genKeyWithSeed(String seed) throws Exception {
+	private static byte[] genKeyWithSeed(byte[] seed) throws Exception {
 		KeyGenerator kg = KeyGenerator.getInstance(ALGORITHM);
-		kg.init(256, new SecureRandom(seed.getBytes()));
+		kg.init(256, new SecureRandom(seed));
 
 		SecretKey secretKey = kg.generateKey();
 		return secretKey.getEncoded();
-	}
-
-	public static void main(String[] args) throws Exception {
-
-		String sKey = "57f6f9d45edc2";
-
-		// 需要加密的字串
-		String content = "hello,i'm Lord Melon";
-		System.out.println("加密前的字串是：" + content);
-
-
 	}
 }
