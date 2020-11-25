@@ -1,4 +1,4 @@
-package com.simple.xrcraft.rule.collector;
+package com.simple.xrcraft.rule.fact;
 
 import java.util.Map;
 

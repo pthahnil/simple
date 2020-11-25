@@ -325,6 +325,7 @@ public class HttpClientUtil {
 
 		RequestConfig reqConfig = getReqConfig();
 		return HttpClients.custom()
+				.setProxy(props.getProxy())
 				.setConnectionManager(connectionManager)
 				.setDefaultRequestConfig(reqConfig)
 				.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)

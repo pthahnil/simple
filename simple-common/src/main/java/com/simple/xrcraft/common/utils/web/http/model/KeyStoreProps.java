@@ -2,6 +2,7 @@ package com.simple.xrcraft.common.utils.web.http.model;
 
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHost;
 
 import java.io.InputStream;
 import java.security.KeyStore;
@@ -24,6 +25,8 @@ public class KeyStoreProps {
 	private String keyStoreAlias;
 
 	private String keyStoreType = "JKS";
+
+	private HttpHost proxy;
 
 	public KeyStoreProps() { }
 
@@ -48,5 +51,10 @@ public class KeyStoreProps {
 		ks.load(stream, pass);
 
 		return ks;
+	}
+
+	private void setProxy(String proxyUrl) {
+		HttpHost proxyHost =  HttpHost.create(proxyUrl);
+		this.proxy = proxyHost;
 	}
 }
