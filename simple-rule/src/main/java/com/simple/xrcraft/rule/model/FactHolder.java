@@ -1,31 +1,36 @@
 package com.simple.xrcraft.rule.model;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @description:
  * @author pthahnil
  * @date 2019/11/28 17:27
  */
+@Slf4j
 @Getter
 public class FactHolder implements Serializable {
 
-	private Set<SimpleFact> facts = new HashSet<>();
+	private Map<String, SimpleFact> factMap = new HashMap<>();
 
 	public void addFact(String fact, String value) {
-		facts.add(new SimpleFact(fact, value));
+		if(factMap.containsKey(fact)){
+			log.info("key:{}已经存在，覆盖旧值：{}", fact, factMap.get(fact).getValue());
+		}
+		factMap.put(fact, new SimpleFact(fact, value));
 	}
 
 	public String get(String factKey) {
 		if(StringUtils.isBlank(factKey)) {
 			return null;
 		}
-		SimpleFact fact = facts.stream().filter(fac -> factKey.equals(fac.getFact())).findAny().orElse(null);
+		SimpleFact fact = factMap.get(factKey);
 		return null != fact ? fact.getValue() : null;
 	}
 }

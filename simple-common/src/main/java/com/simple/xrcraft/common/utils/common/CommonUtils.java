@@ -73,34 +73,6 @@ public class CommonUtils {
 	}
 
 	/**
-	 * 转驼峰命名
-	 * @param fields
-	 * @param seperator
-	 * @return
-	 */
-	public static List<String> toCam(List<String> fields, String seperator) {
-
-		if(CollectionUtils.isEmpty(fields)) {
-			return null;
-		}
-
-		if(StringUtils.isBlank(seperator)) {
-			return fields;
-		}
-		return fields.stream().map(field -> {
-			String[] fieldSegs = field.split(seperator);
-			StringBuffer buffer = new StringBuffer(fieldSegs[0]);
-			if(fieldSegs.length > 1) {
-				for (int i = 1; i < fieldSegs.length; i++) {
-					String fieldSeg = fieldSegs[i];
-					buffer.append(fieldSeg.substring(0, 1).toUpperCase()).append(fieldSeg.substring(1));
-				}
-			}
-			return buffer.toString();
-		}).collect(Collectors.toList());
-	}
-
-	/**
 	 * 当前文件夹目录
 	 * @return
 	 * @throws Exception

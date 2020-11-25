@@ -211,17 +211,7 @@ public class BasicHttpUtil {
      * @return
      */
     public static String doGet(String uri, Map<String, Object> params, Map<String, String> headers) throws Exception {
-
-        URIBuilder builder = new URIBuilder(uri);
-        if(MapUtils.isNotEmpty(params)){
-            for (Map.Entry<String, Object> entry : params.entrySet()) {
-                String key = entry.getKey();
-                String value = String.valueOf(null != entry.getValue() ? entry.getValue() : "");
-                builder.addParameter(key, value);
-            }
-        }
-
-        String url = builder.build().toString();
+        String url = HttpClientUtil.assembleGetUrl(uri, params).toString();
         return doGet(url, headers);
     }
 
