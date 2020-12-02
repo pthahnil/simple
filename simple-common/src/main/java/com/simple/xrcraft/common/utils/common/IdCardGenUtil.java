@@ -22,15 +22,8 @@ public class IdCardGenUtil {
 
 	public static String genIdCard() throws Exception {
 		//生成格式正确的身份证号
-		boolean genSucc = false;
-
 		List<String> lines = PatternUtil.loadAreaCodes();
-		String idCard = null;
-		while (!genSucc){
-			idCard = genIdCard(lines);
-			genSucc = StringUtils.isNotBlank(idCard);
-		}
-		return idCard;
+		return genIdCard(lines);
 	}
 
 	/**
@@ -98,12 +91,20 @@ public class IdCardGenUtil {
 		String num2 = numbs[index];
 		idCardPrefix = idCardPrefix + num4 + num3 + num2;
 
-		for (int i = 0; i < PatternUtil.remNums.length; i++) {
-			String idCardNo = idCardPrefix + PatternUtil.remNums[i];
-			if(PatternUtil.idCardlastNumCheck(idCardNo)){
-				return idCardNo;
-			}
+		String[] nums = idCardPrefix.split("");
+		Integer add = 0;
+		for (int i = 0; i < nums.length; i++) {
+			Integer fi = Integer.parseInt(nums[i]);
+			Integer si = Integer.parseInt(PatternUtil.checkNum[i]);
+			add += (fi * si);
 		}
-		return null;
+
+		int remainIndex = add % 11;
+		if(remainIndex > 10){
+			return genIdCard(lines);
+		} else {
+			idCardPrefix += PatternUtil.remNums[remainIndex];
+			return idCardPrefix;
+		}
 	}
 }
