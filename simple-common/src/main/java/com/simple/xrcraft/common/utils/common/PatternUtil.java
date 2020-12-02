@@ -23,9 +23,9 @@ import java.util.stream.Collectors;
 public class PatternUtil {
 
 	/**身份证前17位的系数*/
-	private static final String[] checkNum = {"7","9","10","5","8","4","2","1","6","3","7","9","10","5","8","4","2"};
+	public static final String[] checkNum = {"7","9","10","5","8","4","2","1","6","3","7","9","10","5","8","4","2"};
 	/**身份证最后一位*/
-	private static final String[] remNums = {"1","0","X ","9","8","7","6","5","4","3","2"};
+	public static final String[] remNums = {"1","0","X ","9","8","7","6","5","4","3","2"};
 
 	/**身份证长度的匹配*/
 	private static Pattern ID_CARD_PATTERN = Pattern.compile("\\d{17}[0-9X]{1}");
