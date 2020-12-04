@@ -13,6 +13,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 
@@ -305,6 +306,46 @@ public class DateUtils {
 		return lc2Dt(time);
 	}
 
+	/**
+	 * 多个时间区间，取最佳
+	 * @param date
+	 * @param sortedGaps seconds
+	 * @return
+	 */
+	public static int getTimeGap(Date date, List<Integer> sortedGaps){
+
+		if(null == date){
+			return 0;
+		}
+
+		if(null == sortedGaps || sortedGaps.size() == 0){
+			return 0;
+		}
+
+		for (Integer gap : sortedGaps) {
+			if(timeGapGraterThen(date, gap)){
+				return gap;
+			}
+		}
+		return 30;
+	}
+
+	/**
+	 * 所给的时间跟现在时间相差的秒数是否大于 入参seconds
+	 * @param date
+	 * @param seconds
+	 * @return
+	 */
+	public static boolean timeGapGraterThen(Date date, int seconds) {
+		if(null == date){
+			return false;
+		}
+		Instant instant = date.toInstant();
+		LocalDateTime time = LocalDateTime.ofInstant(instant, sysZone);
+		LocalDateTime now = LocalDateTime.now();
+
+		return time.until(now, ChronoUnit.SECONDS) >= seconds;
+	}
 }
 
 	
