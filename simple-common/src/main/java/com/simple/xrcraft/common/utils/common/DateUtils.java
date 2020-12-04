@@ -208,12 +208,10 @@ public class DateUtils {
 		if(StringUtils.isBlank(pattern)){
 			return null;
 		}
-		pattern = pattern.replace("-", "");
-		pattern = pattern.replace("/", "");
-		pattern = pattern.replace("_", "");
-		pattern = pattern.replace(" ", "");
-		pattern = pattern.replace(":", "");
-
+		String[] blankReplaceMents = new String[]{"-", "/", "_", " ", ":", "年", "月", "日", "时", "分", "秒"};
+		for (String blankReplaceMent : blankReplaceMents) {
+			pattern = pattern.replace(blankReplaceMent, "");
+		}
 		return StringUtils.trimToEmpty(pattern);
 	}
 
