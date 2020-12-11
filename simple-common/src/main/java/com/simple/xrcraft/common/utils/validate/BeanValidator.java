@@ -6,6 +6,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by pthahnil on 2019/6/13.
@@ -26,8 +27,8 @@ public class BeanValidator {
 		return violations.stream()
 				.filter(via -> StringUtils.isNotBlank(via.getMessage()))
 				.map(via -> via.getMessage())
-				//.collect(Collectors.joining(","));  全部字段消息返回
-				.findFirst().orElse(null);  //返回单个字段消息
+				.collect(Collectors.joining(","));  //全部字段消息返回
+//				.findFirst().orElse(null);  //返回单个字段消息
 	}
 
 }
