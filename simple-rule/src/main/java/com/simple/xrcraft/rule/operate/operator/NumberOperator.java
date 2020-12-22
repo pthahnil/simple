@@ -1,12 +1,9 @@
 package com.simple.xrcraft.rule.operate.operator;
 
-import com.simple.xrcraft.rule.ognl.DefaultMemberAccess;
 import com.simple.xrcraft.rule.operate.BaseOperator;
-import ognl.Ognl;
-import ognl.OgnlContext;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.math.BigDecimal;
 
 /**
  * @description:
@@ -17,22 +14,47 @@ public class NumberOperator implements BaseOperator {
 
 	@Override
 	public Boolean gt(String factValue, String targetValue) throws Exception {
-		return compareTo(factValue, targetValue, ">");
+		if(StringUtils.isBlank(factValue) || StringUtils.isBlank(targetValue)){
+			return false;
+		}
+		BigDecimal fact = new BigDecimal(factValue);
+		BigDecimal target = new BigDecimal(targetValue);
+		return fact.compareTo(target) > 0;
+
+		//return compareTo(factValue, targetValue, ">");
 	}
 
 	@Override
 	public Boolean ge(String factValue, String targetValue) throws Exception {
-		return compareTo(factValue, targetValue, ">=");
+		if(StringUtils.isBlank(factValue) || StringUtils.isBlank(targetValue)){
+			return false;
+		}
+		BigDecimal fact = new BigDecimal(factValue);
+		BigDecimal target = new BigDecimal(targetValue);
+		return fact.compareTo(target) >= 0;
+//		return compareTo(factValue, targetValue, ">=");
 	}
 
 	@Override
 	public Boolean lt(String factValue, String targetValue) throws Exception {
-		return compareTo(factValue, targetValue, "<");
+		if(StringUtils.isBlank(factValue) || StringUtils.isBlank(targetValue)){
+			return false;
+		}
+		BigDecimal fact = new BigDecimal(factValue);
+		BigDecimal target = new BigDecimal(targetValue);
+		return fact.compareTo(target) < 0;
+//		return compareTo(factValue, targetValue, "<");
 	}
 
 	@Override
 	public Boolean le(String factValue, String targetValue) throws Exception {
-		return compareTo(factValue, targetValue, "<=");
+		if(StringUtils.isBlank(factValue) || StringUtils.isBlank(targetValue)){
+			return false;
+		}
+		BigDecimal fact = new BigDecimal(factValue);
+		BigDecimal target = new BigDecimal(targetValue);
+		return fact.compareTo(target) <= 0;
+//		return compareTo(factValue, targetValue, "<=");
 	}
 
 	/**
@@ -43,7 +65,7 @@ public class NumberOperator implements BaseOperator {
 	 * @return
 	 * @throws Exception
 	 */
-	private boolean compareTo(Object factValue, Object targetValue, String op) throws Exception {
+	/*private boolean compareTo(Object factValue, Object targetValue, String op) throws Exception {
 
 		Map<String,Object> map = new HashMap<>();
 		map.put("fact", factValue);
@@ -54,6 +76,6 @@ public class NumberOperator implements BaseOperator {
 		OgnlContext context = new OgnlContext(null,null,new DefaultMemberAccess(true));
 		Object exp = Ognl.parseExpression(expression);
 		return (Boolean) Ognl.getValue(exp, context, map);
-	}
+	}*/
 
 }
