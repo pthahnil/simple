@@ -254,7 +254,6 @@ public class RestTemplateUtil {
 				httpHeaders.add(entry.getKey(), entry.getValue());
 			}
 		}
-
 		return httpHeaders;
 	}
 }

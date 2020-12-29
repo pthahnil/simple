@@ -2,6 +2,7 @@ package com.simple.xrcraft.common.utils.web.http;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -12,62 +13,38 @@ import java.util.Map;
  */
 @Slf4j
 public class NetworkUtil {
+
 	/**
-	 * 获取请求主机IP地址,如果通过代理进来，则透过防火墙获取真实IP地址;
-	 *
+	 * get ip from a request
 	 * @param request
 	 * @return
 	 */
 	public final static String getIpAddress(HttpServletRequest request)  {
-		// 获取请求主机IP地址,如果通过代理进来，则透过防火墙获取真实IP地址
+		String[] headers = {"X-Forwarded-For", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"};
+		String ipAddr = null;
 
-		String ip = request.getHeader("X-Forwarded-For");
-		if (log.isDebugEnabled()) {
-			log.debug("getIpAddress(HttpServletRequest) - X-Forwarded-For - String ip=" + ip);
-		}
+		String unknowHeader = "unknown";
 
-		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-			if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-				ip = request.getHeader("Proxy-Client-IP");
-				if (log.isDebugEnabled()) {
-					log.debug("getIpAddress(HttpServletRequest) - Proxy-Client-IP - String ip=" + ip);
-				}
+		for (String header : headers) {
+			String headerVal = request.getHeader(header);
+			if(StringUtils.isBlank(headerVal) || unknowHeader.equalsIgnoreCase(headerVal)){
+				continue;
 			}
-			if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-				ip = request.getHeader("WL-Proxy-Client-IP");
-				if (log.isDebugEnabled()) {
-					log.debug("getIpAddress(HttpServletRequest) - WL-Proxy-Client-IP - String ip=" + ip);
+			if(headerVal.contains(",")){
+				String[] vals = headerVal.split(",");
+				for (String val : vals) {
+					if(unknowHeader.equalsIgnoreCase(val)){
+						continue;
+					} else {
+						ipAddr = val;
+						break;
+					}
 				}
-			}
-			if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-				ip = request.getHeader("HTTP_CLIENT_IP");
-				if (log.isDebugEnabled()) {
-					log.debug("getIpAddress(HttpServletRequest) - HTTP_CLIENT_IP - String ip=" + ip);
-				}
-			}
-			if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-				ip = request.getHeader("HTTP_X_FORWARDED_FOR");
-				if (log.isDebugEnabled()) {
-					log.debug("getIpAddress(HttpServletRequest) - HTTP_X_FORWARDED_FOR - String ip=" + ip);
-				}
-			}
-			if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-				ip = request.getRemoteAddr();
-				if (log.isDebugEnabled()) {
-					log.debug("getIpAddress(HttpServletRequest) - getRemoteAddr - String ip=" + ip);
-				}
-			}
-		} else if (ip.length() > 15) {
-			String[] ips = ip.split(",");
-			for (int index = 0; index < ips.length; index++) {
-				String strIp = (String) ips[index];
-				if (!("unknown".equalsIgnoreCase(strIp))) {
-					ip = strIp;
-					break;
-				}
+			} else {
+				ipAddr = headerVal;
 			}
 		}
-		return ip;
+		return StringUtils.isBlank(ipAddr) ? request.getRemoteAddr() : ipAddr;
 	}
 
 	/**
