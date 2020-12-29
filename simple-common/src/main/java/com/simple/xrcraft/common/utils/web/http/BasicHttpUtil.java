@@ -1,13 +1,13 @@
 package com.simple.xrcraft.common.utils.web.http;
 
-import com.simple.xrcraft.common.utils.bean.JsonUtils;
 import com.simple.xrcraft.common.constants.HttpConstants;
+import com.simple.xrcraft.common.utils.web.http.model.HttpExchangeModel;
+import com.simple.xrcraft.common.utils.web.http.model.KeyStoreProps;
 import com.simple.xrcraft.common.utils.web.http.model.MultipartPartSegment;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.HttpEntity;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
@@ -23,19 +23,15 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.KeyStore;
 import java.security.Principal;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 通用http/https工具类
@@ -47,104 +43,6 @@ public class BasicHttpUtil {
     private static int CONN_TIME_OUT = 15 * 1000;
     /**读取超时*/
     private static int READ_TIME_OUT = 10 * 1000;
-
-    /**
-     * 报文格式：常见的key1=val1&key2=val2形式
-     * @param uri uri
-     * @param params 请求参数
-     * @return
-     */
-    public static String postRawForm(String uri, Map<String, Object> params, Map<String, String> headers) throws Exception {
-        String requestStr =params.entrySet().stream()
-                .map(ent -> ent.getKey() + "=" + (null != ent.getValue() ? ent.getValue().toString() : ""))
-                .collect(Collectors.joining(HttpConstants.SEPERATOR_AND));
-        return sendPost(uri, requestStr, headers);
-    }
-
-    /**
-     * 报文格式：form表单
-     * @param uri uri
-     * @param params 请求参数
-     * @return
-     */
-    public static String postEncodedForm(String uri, Map<String, Object> params, Map<String, String> headers) throws Exception {
-        if(MapUtils.isEmpty(headers)) {
-            headers = new HashMap<>();
-        }
-        headers.put("Content-Type", "application/x-www-form-urlencoded; charset=" + HttpConstants.CHARSET_UTF8);
-
-        String requestStr = params.entrySet()
-                .stream()
-                .map(ent -> {
-                    try {
-                        String encodedKey = URLEncoder.encode(ent.getKey(), HttpConstants.CHARSET_UTF8);
-                        String encodedVal = null != ent.getValue() ? URLEncoder.encode(ent.getValue().toString(), HttpConstants.CHARSET_UTF8) : "";
-                        return encodedKey + "=" + encodedVal;
-                    } catch (Exception e) {}
-                    return null;
-                })
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.joining(HttpConstants.SEPERATOR_AND));
-        return sendPost(uri, requestStr, headers);
-    }
-
-    /**
-     * 报文格式：json
-     * @param uri uri
-     * @param params 请求参数
-     * @return
-     */
-    public static String postJson(String uri, Map<String, Object> params, Map<String, String> headers) throws Exception {
-        if(MapUtils.isEmpty(headers)) {
-            headers = new HashMap<>();
-        }
-        headers.put("Content-Type", "application/json; charset=" + HttpConstants.CHARSET_UTF8);
-        return sendPost(uri, JsonUtils.toJson(params), headers);
-    }
-
-    /**
-     * post
-     * @param uri
-     * @param requestStr
-     * @param headers
-     * @return
-     */
-    public static String sendPost(String uri, String requestStr, Map<String, String> headers) throws Exception {
-        return sendPost(uri, requestStr, headers, null, null);
-    }
-
-    /**
-     * post
-     * @param uri uri
-     * @param requestStr 请求报文体，string
-     * @return
-     */
-    public static String sendPost(String uri, String requestStr, Map<String, String> headers, InputStream stream, String certPwd) throws Exception {
-        log.info("请求参数：{}", requestStr);
-        HttpURLConnection connection = null;
-        try {
-            connection = basicConn(uri, HttpConstants.METHOD_POST, headers, stream, certPwd);
-            connection.connect();
-
-            vertValidate(connection);
-
-            connection.getOutputStream().write(requestStr.getBytes(StandardCharsets.UTF_8));
-            InputStream is = connection.getInputStream();
-
-            byte[] outBts = IOUtils.readFully(is, is.available());
-            String resp = new String(outBts, Charset.forName(HttpConstants.CHARSET_UTF8));
-
-            log.info("返回结果：{}", resp);
-            return resp;
-        } catch (Exception e) {
-            log.error("{}请求异常", uri, e);
-            throw e;
-        } finally {
-            if(null != connection) {
-                connection.disconnect();
-            }
-        }
-    }
 
     /**
      * post 带文件的表单
@@ -196,6 +94,54 @@ public class BasicHttpUtil {
             return new String(outBts, Charset.forName(HttpConstants.CHARSET_UTF8));
         } catch (Exception e) {
             log.error("{}请求异常", uri, e);
+            throw e;
+        } finally {
+            if(null != connection) {
+                connection.disconnect();
+            }
+        }
+    }
+
+
+    public static String post(String url, HttpExchangeModel model) throws Exception {
+        return post(url, model, null);
+    }
+
+    /**
+     * todo 带文件的post未测试
+     * @param url
+     * @param model
+     * @param props
+     * @return
+     * @throws Exception
+     */
+    public static String post(String url, HttpExchangeModel model, KeyStoreProps props) throws Exception {
+        HttpURLConnection connection = null;
+        try {
+            boolean validProps = null != props && null != props.getStream();
+            InputStream stream = validProps ? props.getStream() : null;
+            String certPwd = validProps ? props.getCertPwd() : null;
+
+            Map<String, String> headers = null != model ? model.getHeaders() : null;
+
+            connection = basicConn(url, HttpConstants.METHOD_POST, headers, stream, certPwd);
+            connection.connect();
+
+            vertValidate(connection);
+
+            if(null != model){
+                HttpEntity entity = model.getEntity();
+                IOUtils.copy(entity.getContent(), connection.getOutputStream());
+            }
+
+            InputStream is = connection.getInputStream();
+
+            byte[] outBts = IOUtils.readFully(is, is.available());
+            String resp = new String(outBts, Charset.forName(HttpConstants.CHARSET_UTF8));
+
+            return resp;
+        } catch (Exception e) {
+            log.error("{}请求异常", url, e);
             throw e;
         } finally {
             if(null != connection) {

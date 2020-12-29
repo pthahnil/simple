@@ -6,7 +6,8 @@ import com.simple.xrcraft.common.utils.web.http.model.entity.FormEntityBuilder;
 import com.simple.xrcraft.common.utils.web.http.model.entity.JsonEntityBuilder;
 import com.simple.xrcraft.common.utils.web.http.model.entity.MultiPartFormEntityBuilder;
 import com.simple.xrcraft.common.utils.web.http.model.entity.StringEntityBuilder;
-import lombok.Data;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 
 import java.util.ArrayList;
@@ -19,7 +20,6 @@ import java.util.Map;
  * @author pthahnil
  * @date 2020/11/6 9:11
  */
-@Data
 public class HttpExchangeModel {
 
 	/**请求头*/
@@ -68,6 +68,17 @@ public class HttpExchangeModel {
 
 	public HttpExchangeModel(ExchangeType exchangeType) {
 		this.exchangeType = exchangeType;
+
+		String contentType = null;
+		if(ExchangeType.FORM.equals(exchangeType)){
+			contentType = "application/x-www-form-urlencoded;";
+		} else if(ExchangeType.JSON.equals(exchangeType)){
+			contentType = "application/json;";
+		}
+		if(StringUtils.isNotBlank(contentType)){
+			headers = new HashMap<>();
+			headers.put(HttpConstants.HEADER_KEY_CONTENT_TYPE, contentType);
+		}
 	}
 
 	public HttpExchangeModel addHeader(String key, String value) {
@@ -76,6 +87,17 @@ public class HttpExchangeModel {
 		}
 		headers.put(key, value);
 		return this;
+	}
+
+	public Map<String, String> getHeaders() {
+		if(MapUtils.isNotEmpty(headers) && headers.containsKey(HttpConstants.HEADER_KEY_CONTENT_TYPE)){
+			String val = headers.get(HttpConstants.HEADER_KEY_CONTENT_TYPE);
+			if(StringUtils.isNotBlank(val) && !val.contains("charset=")){
+				val = val + " charset=" + getReqCharSet();
+				headers.put(HttpConstants.HEADER_KEY_CONTENT_TYPE, val);
+			}
+		}
+		return headers;
 	}
 
 	public HttpExchangeModel addParams(String key, Object value) {
@@ -109,9 +131,21 @@ public class HttpExchangeModel {
 		return this;
 	}
 
+	public String getReqCharSet(){
+		return this.reqCharSet;
+	}
+
 	public HttpExchangeModel setRespCharSet(String respCharSet){
 		this.respCharSet = respCharSet;
 		return this;
+	}
+
+	public String getRespCharSet(){
+		return this.respCharSet;
+	}
+
+	public Map<String, Object> getParams() {
+		return params;
 	}
 
 	public enum ExchangeType{
