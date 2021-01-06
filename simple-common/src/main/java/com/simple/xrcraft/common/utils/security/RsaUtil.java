@@ -280,8 +280,8 @@ public class RsaUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static KeyStore getKeystore(InputStream fis, String pwd) throws Exception {
-		return getKeystore(fis, pwd, "PKCS12");
+	public static KeyStore loadKeyStore(InputStream fis, String pwd) throws Exception {
+		return loadKeyStore(fis, pwd, "PKCS12");
 	}
 
 	/**
@@ -291,7 +291,7 @@ public class RsaUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	public static KeyStore getKeystore(InputStream fis, String pwd, String keyStoreType) throws Exception {
+	public static KeyStore loadKeyStore(InputStream fis, String pwd, String keyStoreType) throws Exception {
 		KeyStore ks = KeyStore.getInstance(keyStoreType);
 		ks.load(fis, StringUtils.isNotBlank(pwd) ? pwd.toCharArray() : null);
 		fis.close();

@@ -16,6 +16,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -61,33 +62,7 @@ public class BasicHttpUtil {
             vertValidate(connection);
 
             OutputStream output = connection.getOutputStream();
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, HttpConstants.CHARSET_UTF8), true);
-            for (MultipartPartSegment param : params) {
-                writer.append("--" + boundary).append(HttpConstants.CRLF);
-
-                String key = param.getKey();
-                Object value = param.getValue();
-
-                if(value instanceof File) {
-                    File val = (File) value;
-                    writer.append("Content-Disposition: form-data; name="+ key +"; filename=").append(val.getName()).append(HttpConstants.CRLF);
-                    writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(val.getName())).append(HttpConstants.CRLF);
-
-                    writer.append("Content-Transfer-Encoding: binary").append(HttpConstants.CRLF);
-                    writer.append(HttpConstants.CRLF).flush();
-
-                    Files.copy(val.toPath(), output);
-                    output.flush();
-
-                    writer.append(HttpConstants.CRLF).flush();
-                } else {
-                    String valueStr = null == value ? "" : String.valueOf(value);
-                    writer.append("Content-Disposition: form-data; name=").append(key).append(HttpConstants.CRLF);
-                    writer.append("Content-Type: text/plain; charset=").append(param.getCharSet()).append(HttpConstants.CRLF);
-                    writer.append(HttpConstants.CRLF).append(valueStr).append(HttpConstants.CRLF).flush();
-                }
-            }
-            writer.append("--" + boundary + "--").append(HttpConstants.CRLF).flush();
+            HttpExchangeModel.write(params, output, boundary);
 
             InputStream is = connection.getInputStream();
             byte[] outBts = IOUtils.toByteArray(is);
@@ -101,6 +76,8 @@ public class BasicHttpUtil {
             }
         }
     }
+
+
 
 
     public static String post(String url, HttpExchangeModel model) throws Exception {
@@ -125,13 +102,26 @@ public class BasicHttpUtil {
             Map<String, String> headers = null != model ? model.getHeaders() : null;
 
             connection = basicConn(url, HttpConstants.METHOD_POST, headers, stream, certPwd);
+            //todo
+//            null != model && model.ge
+
             connection.connect();
 
             vertValidate(connection);
 
+            String boundary = Long.toHexString(System.currentTimeMillis());
             if(null != model){
-                HttpEntity entity = model.getEntity();
-                IOUtils.copy(entity.getContent(), connection.getOutputStream());
+                //TODO 这种方式， 文件>25k报错，需要更改
+               // HttpEntity entity = model.getEntity();
+                //IOUtils.copy(entity.getContent(), connection.getOutputStream());
+
+                //todo 可能会出错
+                model.write(connection.getOutputStream(), boundary);
+            }
+
+            int code = connection.getResponseCode();
+            if(code != 200){
+                throw new Exception(IOUtils.toString(connection.getErrorStream(), "utf8"));
             }
 
             InputStream is = connection.getInputStream();

@@ -7,9 +7,17 @@ import com.simple.xrcraft.common.utils.web.http.model.entity.JsonEntityBuilder;
 import com.simple.xrcraft.common.utils.web.http.model.entity.MultiPartFormEntityBuilder;
 import com.simple.xrcraft.common.utils.web.http.model.entity.StringEntityBuilder;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.URLConnection;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +72,17 @@ public class HttpExchangeModel {
 				break;
 		}
 		return entity;
+	}
+
+	public void write(OutputStream os, String boundary) throws Exception {
+		ExchangeType type = this.exchangeType;
+		if(this.exchangeType.equals(ExchangeType.FORM) || this.exchangeType.equals(ExchangeType.JSON)
+				|| this.exchangeType.equals(ExchangeType.STRING)){
+			HttpEntity entity = this.getEntity();
+			IOUtils.copy(entity.getContent(), os);
+		} else {
+			write(this.segments, os, boundary);
+		}
 	}
 
 	public HttpExchangeModel(ExchangeType exchangeType) {
@@ -126,6 +145,10 @@ public class HttpExchangeModel {
 		return this;
 	}
 
+	public void setBody(String body) {
+		this.body = body;
+	}
+
 	public HttpExchangeModel setReqCharSet(String reqCharSet){
 		this.reqCharSet = reqCharSet;
 		return this;
@@ -140,6 +163,10 @@ public class HttpExchangeModel {
 		return this;
 	}
 
+	public List<MultipartPartSegment> getSegments() {
+		return segments;
+	}
+
 	public String getRespCharSet(){
 		return this.respCharSet;
 	}
@@ -148,10 +175,48 @@ public class HttpExchangeModel {
 		return params;
 	}
 
+	public ExchangeType getExchangeType() {
+		return exchangeType;
+	}
+
 	public enum ExchangeType{
 		JSON,
 		STRING,
 		FORM,
 		MULTI_PART_FORM;
+	}
+
+	public static void write(List<MultipartPartSegment> segments, OutputStream os, String boundary) throws Exception {
+		if(null == os){
+			throw new IOException("outputstream already closed");
+		}
+
+		PrintWriter writer = new PrintWriter(new OutputStreamWriter(os, HttpConstants.CHARSET_UTF8), true);
+		for (MultipartPartSegment param : segments) {
+			writer.append("--" + boundary).append(HttpConstants.CRLF);
+
+			String key = param.getKey();
+			Object value = param.getValue();
+
+			if(value instanceof File) {
+				File val = (File) value;
+				writer.append("Content-Disposition: form-data; name="+ key +"; filename=").append(val.getName()).append(HttpConstants.CRLF);
+				writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(val.getName())).append(HttpConstants.CRLF);
+
+				writer.append("Content-Transfer-Encoding: binary").append(HttpConstants.CRLF);
+				writer.append(HttpConstants.CRLF).flush();
+
+				Files.copy(val.toPath(), os);
+				os.flush();
+
+				writer.append(HttpConstants.CRLF).flush();
+			} else {
+				String valueStr = null == value ? "" : String.valueOf(value);
+				writer.append("Content-Disposition: form-data; name=").append(key).append(HttpConstants.CRLF);
+				writer.append("Content-Type: text/plain; charset=").append(param.getCharSet()).append(HttpConstants.CRLF);
+				writer.append(HttpConstants.CRLF).append(valueStr).append(HttpConstants.CRLF).flush();
+			}
+		}
+		writer.append("--" + boundary + "--").append(HttpConstants.CRLF).flush();
 	}
 }
