@@ -5,6 +5,7 @@ import com.simple.xrcraft.common.utils.web.http.model.HttpExchangeModel;
 import com.simple.xrcraft.common.utils.web.http.model.KeyStoreProps;
 import com.simple.xrcraft.common.utils.web.http.model.MultipartPartSegment;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -31,6 +32,7 @@ import java.security.Principal;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,40 +48,12 @@ public class BasicHttpUtil {
     private static int READ_TIME_OUT = 10 * 1000;
 
     /**
-     * post 带文件的表单
+     * post
+     * @param url
+     * @param model
      * @return
      * @throws Exception
      */
-    public static String formWithFile(String uri, Map<String, String> headers, List<MultipartPartSegment> params) throws Exception {
-        HttpURLConnection connection = null;
-        try {
-            String boundary = Long.toHexString(System.currentTimeMillis());
-
-            connection = basicConn(uri, HttpConstants.METHOD_POST, headers, null, null);
-            connection.setRequestProperty(HttpConstants.HEADER_KEY_CONTENT_TYPE, "multipart/form-data; boundary=" + boundary);
-            connection.connect();
-
-            vertValidate(connection);
-
-            OutputStream output = connection.getOutputStream();
-            HttpExchangeModel.write(params, output, boundary);
-
-            InputStream is = connection.getInputStream();
-            byte[] outBts = IOUtils.toByteArray(is);
-            return new String(outBts, Charset.forName(HttpConstants.CHARSET_UTF8));
-        } catch (Exception e) {
-            log.error("{}请求异常", uri, e);
-            throw e;
-        } finally {
-            if(null != connection) {
-                connection.disconnect();
-            }
-        }
-    }
-
-
-
-
     public static String post(String url, HttpExchangeModel model) throws Exception {
         return post(url, model, null);
     }
@@ -100,23 +74,27 @@ public class BasicHttpUtil {
             String certPwd = validProps ? props.getCertPwd() : null;
 
             Map<String, String> headers = null != model ? model.getHeaders() : null;
-
+            String boundary = null;
+            if(null != model && HttpExchangeModel.ExchangeType.MULTI_PART_FORM.equals(model.getExchangeType())){
+                boundary = Long.toHexString(System.currentTimeMillis());
+                if(null == headers){
+                    headers = new HashMap<>();
+                }
+                headers.put(HttpConstants.HEADER_KEY_CONTENT_TYPE, "multipart/form-data; boundary=" + boundary);
+            }
             connection = basicConn(url, HttpConstants.METHOD_POST, headers, stream, certPwd);
-            //todo
-//            null != model && model.ge
 
             connection.connect();
 
             vertValidate(connection);
-
-            String boundary = Long.toHexString(System.currentTimeMillis());
             if(null != model){
-                //TODO 这种方式， 文件>25k报错，需要更改
-               // HttpEntity entity = model.getEntity();
-                //IOUtils.copy(entity.getContent(), connection.getOutputStream());
-
-                //todo 可能会出错
-                model.write(connection.getOutputStream(), boundary);
+                if(HttpExchangeModel.ExchangeType.MULTI_PART_FORM.equals(model.getExchangeType())){
+                    //用下面分方法会报错，只能这么玩
+                    model.write(connection.getOutputStream(), boundary);
+                } else {
+                    HttpEntity entity = model.getEntity();
+                    IOUtils.copy(entity.getContent(), connection.getOutputStream());
+                }
             }
 
             int code = connection.getResponseCode();
