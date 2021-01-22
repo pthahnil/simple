@@ -18,6 +18,12 @@ public class MapStringDeserializer extends JsonDeserializer<String> {
 	@Override
 	public String deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,JsonProcessingException {
 		JsonNode node = jp.getCodec().readTree(jp);
-		return node.toString();
+		String retVal = null;
+		if(node.isTextual()) {
+			retVal = node.asText();
+		} else {
+			retVal = node.toString();
+		}
+		return retVal;
 	}
 }
