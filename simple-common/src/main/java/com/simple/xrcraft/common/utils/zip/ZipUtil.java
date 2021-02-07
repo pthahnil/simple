@@ -125,6 +125,7 @@ public class ZipUtil {
 				InputStream ins = zipFile.getInputStream(entry);
 				IOUtils.copy(ins, fos);
 				fos.flush();
+				fos.close();
 			}
 		}
 	}
