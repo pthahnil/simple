@@ -22,6 +22,9 @@ public class BeanValidator {
 	 * @return
 	 */
 	public static <T> String validate(T t) {
+		if(null == t){
+			return "入参为空";
+		}
 		Set<ConstraintViolation<T>> violations = validator.validate(t);
 
 		return violations.stream()
