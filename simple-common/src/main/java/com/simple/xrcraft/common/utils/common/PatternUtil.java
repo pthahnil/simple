@@ -8,6 +8,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -93,9 +94,13 @@ public class PatternUtil {
 		}
 		String dateStr = idCardNo.substring(6, 14);
 		try {
-			//解析成功即可
-			LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
-			return null != date;
+			String yearMonthField = dateStr.substring(0, 6);
+			String dayField = dateStr.substring(6);
+
+			Integer day = Integer.parseInt(dayField);
+			YearMonth yearMonth = YearMonth.parse(yearMonthField, DateTimeFormatter.ofPattern("yyyyMM"));
+
+			return day <= yearMonth.lengthOfMonth();
 		} catch (Exception e) {
 			return false;
 		}
