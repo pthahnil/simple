@@ -1,5 +1,7 @@
 package com.simple.xrcraft.common.utils.common;
 
+import com.simple.xrcraft.common.constants.Gender;
+
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
@@ -18,10 +20,18 @@ public class IdCardGenUtil {
 
 	public static final String[] numbs = {"0","1","2 ","3","4","5","6","7","8","9"};
 
-	public static String genIdCard() throws Exception {
+	public static String maleIdCard() throws Exception {
+		return genIdCard(Gender.MALE);
+	}
+
+	public static String femaleIdCard() throws Exception {
+		return genIdCard(Gender.FEMALE);
+	}
+
+	public static String genIdCard(Gender gender) throws Exception {
 		//生成格式正确的身份证号
 		List<String> lines = PatternUtil.loadAreaCodes();
-		return genIdCard(lines);
+		return genIdCard(lines, gender);
 	}
 
 	/**
@@ -67,7 +77,7 @@ public class IdCardGenUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	private static String genIdCard(List<String> lines) {
+	private static String genIdCard(List<String> lines, Gender gender) {
 		int size = lines.size();
 		Random random = new Random();
 		int index = random.nextInt(size);
@@ -76,17 +86,44 @@ public class IdCardGenUtil {
 
 		LocalDate date = genBirthday();
 
+		return genIdCard(areaCode, date, gender);
+	}
+
+	/**
+	 * 生产身份证号
+	 * @param areaCode
+	 * @param date
+	 * @param gender
+	 * @return
+	 */
+	private static String genIdCard(String areaCode, LocalDate date, Gender gender) {
+		Random random = new Random();
+
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 		String idCardPrefix = areaCode + formatter.format(date);
 
-		index = random.nextInt(10);
+		int index = random.nextInt(10);
 		String num4 = numbs[index];
 
 		index = random.nextInt(10);
 		String num3 = numbs[index];
 
+		String num2 = null;
 		index = random.nextInt(10);
-		String num2 = numbs[index];
+		boolean evenNum = index % 2 == 0;
+		switch (gender){
+			case MALE:
+				//偶数
+				num2 = evenNum && index > 0 ? numbs[index] : numbs[index-1];
+				break;
+			case FEMALE:
+				//基数
+				num2 = !evenNum && index > 0 ? numbs[index] : numbs[index-1];
+				break;
+			default:
+				num2 = numbs[index];
+				break;
+		}
 		idCardPrefix = idCardPrefix + num4 + num3 + num2;
 
 		String[] nums = idCardPrefix.split("");
@@ -99,10 +136,11 @@ public class IdCardGenUtil {
 
 		int remainIndex = add % 11;
 		if(remainIndex > 10){
-			return genIdCard(lines);
+			return genIdCard(areaCode, date, gender);
 		} else {
 			idCardPrefix += PatternUtil.remNums[remainIndex];
 			return idCardPrefix;
 		}
 	}
+
 }
