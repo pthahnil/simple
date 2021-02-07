@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -46,7 +45,6 @@ public class PatternUtil {
 		Matcher matcher = PHONE_NO_PATTERN.matcher(phoneNo);
 		return matcher.matches();
 	}
-
 
 	/**
 	 * 身份证基本正则校验
@@ -148,15 +146,10 @@ public class PatternUtil {
 	 * @throws Exception
 	 */
 	public static List<String> loadAreaCodes() throws Exception{
-		ClassPathResource resource = new ClassPathResource("areacode.txt");
 		try {
-			List<String> lines = FileUtils.readLines(resource.getFile(), "utf8");
-			return lines.stream().filter(StringUtils::isNotBlank).map(str -> {
-				String[] segs = str.split("=");
-				return segs[0];
-			}).collect(Collectors.toList());
+			List<IdCardAreaModel> models = loadAreaModels();
+			return models.stream().map(IdCardAreaModel::getAreaCode).collect(Collectors.toList());
 		} catch (IOException e) {
-			e.printStackTrace();
 			throw e;
 		}
 	}
@@ -175,9 +168,7 @@ public class PatternUtil {
 				return new IdCardAreaModel(segs[0], segs[1]);
 			}).collect(Collectors.toList());
 		} catch (IOException e) {
-			e.printStackTrace();
 			throw e;
 		}
 	}
-
 }
