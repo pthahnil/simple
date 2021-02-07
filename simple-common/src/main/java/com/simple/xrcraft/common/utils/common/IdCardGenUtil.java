@@ -114,11 +114,11 @@ public class IdCardGenUtil {
 		switch (gender){
 			case MALE:
 				//偶数
-				num2 = evenNum && index > 0 ? numbs[index] : numbs[index-1];
+				num2 = evenNum && index >= 0 ? numbs[index] : numbs[index-1];
 				break;
 			case FEMALE:
 				//基数
-				num2 = !evenNum && index > 0 ? numbs[index] : numbs[index-1];
+				num2 = !evenNum ? numbs[index] : (index > 0 ? numbs[index-1] : numbs[1]);
 				break;
 			default:
 				num2 = numbs[index];
