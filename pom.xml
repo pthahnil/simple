@@ -54,6 +54,7 @@
         <ognl.version>3.2.10</ognl.version>
         <bucket4j.version>4.10.0</bucket4j.version>
         <guava.version>30.0-jre</guava.version>
+        <compress.version>1.20</compress.version>
     </properties>
 
     <dependencyManagement>
@@ -158,6 +159,11 @@
                 <artifactId>commons-collections4</artifactId>
                 <version>${collections.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${compress.version}</version>
+            </dependency>
 
             <!-- httpclient -->
             <dependency>
@@ -171,7 +177,6 @@
                 <artifactId>httpmime</artifactId>
                 <version>${httpclient.version}</version>
             </dependency>
-
 
             <!--mail-->
             <dependency>
