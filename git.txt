@@ -1,0 +1,58 @@
+
+======================create a new repository=======================
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/pthahnil/webcraft.git
+git push -u origin master
+
+------------deinit----------------
+rm -rf .git 
+
+------------create a new branch------------
+git branch ***
+git push origin ***
+
+
+------------delete a local branch-------------
+git br -d ***
+
+------------delete a remote branch------------
+git push --delete origin ***
+
+------------merge--------------
+git checkout master
+git merge ***
+
+------------rebase-------------
+git checkout master
+git rebase
+
+------------roll back----------
+git reset --hard *** --locally
+git log
+git push -f  --remote
+git push -f origin  {commit hashcode}:{branch no} --remote
+git push -f origin cc4b63bebb6:alpha-0.3.0
+
+----------some branches have been removed,but still pops up when you type in: git branch -a --------------------
+git remote show origin----see which branch is tracted
+git remote prune origin ---delete those branches that is not tracked
+
+------------git flow----------
+git flow init
+
+git flow *** start ***
+git flow *** finish ***
+---examples on feature branches
+git flow feature start 2.2.0
+git flow feature finish 2.2.0
+
+-----------delete remote tag---------------
+git push origin --delete tag v2.1.4.0
+
+-----------delete local tag---------------
+git tag -d v2.1.4.0
+
+-----------store username password---------------
+git config --global credential.helper store
