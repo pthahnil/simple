@@ -6,6 +6,7 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import com.simple.xrcraft.common.utils.image.ImageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -39,7 +40,7 @@ public class QrCodeGenerator {
 			int logoWidth = width * 1 / 5;
 			int logoHeight = width * 1 / 5;
 
-			BufferedImage logoBuffer = scale(logo, logoWidth, logoHeight);
+			BufferedImage logoBuffer = ImageUtil.scale(logo, logoWidth, logoHeight);
 
 			if(null != logoBuffer){
 				int x1 = width/2 - logoBuffer.getWidth()/2;
@@ -96,51 +97,6 @@ public class QrCodeGenerator {
 			log.error("图片合并异常{}", e);
 		}
 		return bkImg;
-	}
-
-	/**
-	 * 缩放， 有添加白底
-	 * @param srcImage
-	 * @param width
-	 * @param height
-	 * @return
-	 */
-	public static BufferedImage scale(BufferedImage srcImage, int width, int height){
-
-		double ratio; // 缩放比例
-
-		int frameWidth = 10;
-		int picWidth = width - frameWidth;
-		int picHeight = height - frameWidth;
-		try {
-			if(null != srcImage){
-
-				double xRatio = (new Integer(picWidth)).doubleValue() / srcImage.getWidth();
-				double yRatio = (new Integer(picHeight)).doubleValue() / srcImage.getHeight();
-
-				//扩大或者缩小，比例都取小的
-				ratio = xRatio > yRatio ? yRatio : xRatio;
-
-				AffineTransformOp op = new AffineTransformOp(AffineTransform.getScaleInstance(ratio, ratio), null);
-				Image destImage = op.filter(srcImage, null);
-
-				// 补白
-				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
-				Graphics2D graphic = image.createGraphics();
-				graphic.setColor(Color.white);
-				graphic.fillRect(0, 0, width, height);
-				graphic.drawImage(destImage, frameWidth / 2, frameWidth / 2, destImage.getWidth(null), destImage.getHeight(null), Color.white, null);
-
-				graphic.dispose();
-				destImage = image;
-
-				return (BufferedImage) destImage;
-			}
-		} catch (Exception e){
-			log.error("图片缩放异常异常{}", e);
-		}
-		return null;
 	}
 
 	/**
