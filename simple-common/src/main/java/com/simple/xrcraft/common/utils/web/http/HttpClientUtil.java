@@ -111,6 +111,19 @@ public class HttpClientUtil {
 			return null;
 		}
 
+		if(MapUtils.isNotEmpty(model.getUrlParams())){
+			Map<String, Object> urlParams = model.getUrlParams();
+			String urlParamsStr = urlParams.entrySet().stream().map(ent -> ent.getKey() + "=" + ent.getValue()).collect(Collectors.joining("&"));
+
+			String appender = null;
+			if(url.contains("?")){
+				appender = "&";
+			} else {
+				appender = "?";
+			}
+			url = url + appender + urlParamsStr;
+		}
+
 		HttpPost method = new HttpPost(url);
 		setHeaders(model.getHeaders(), method);
 

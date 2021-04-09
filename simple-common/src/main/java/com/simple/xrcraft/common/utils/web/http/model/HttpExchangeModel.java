@@ -36,6 +36,9 @@ public class HttpExchangeModel {
 	/**body的字段*/
 	private Map<String, Object> params;
 
+	/**post时候，有时候url需要凭借参数*/
+	private Map<String, Object> urlParams;
+
 	/**直接一个string*/
 	private String body;
 
@@ -218,5 +221,19 @@ public class HttpExchangeModel {
 			}
 		}
 		writer.append("--" + boundary + "--").append(HttpConstants.CRLF).flush();
+	}
+
+	public void addUrlParams(String key, Object value){
+		if(StringUtils.isBlank(key)){
+			return;
+		}
+		if(null == this.urlParams){
+			this.urlParams = new HashMap<>();
+		}
+		urlParams.put(key, value);
+	}
+
+	public Map<String, Object> getUrlParams() {
+		return urlParams;
 	}
 }
