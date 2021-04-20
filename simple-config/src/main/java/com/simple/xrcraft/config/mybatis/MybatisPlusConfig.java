@@ -35,7 +35,7 @@ public class MybatisPlusConfig {
 		PaginationInterceptor page = new PaginationInterceptor();
 
 		Properties props = new Properties();
-		props.put("dialectType", "musql");
+		props.put("dialectType", "mysql");
 
 		page.setProperties(props);
 		return page;
