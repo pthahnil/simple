@@ -182,7 +182,7 @@ public class CommonSecurity {
 	 */
 	public static void seedDecrypt(InputStream inStream, OutputStream outStream, String paddingMode,
 			byte[] seed, Integer keyLength, byte[] iv) throws Exception {
-		seedProcess(inStream, outStream, paddingMode, Cipher.ENCRYPT_MODE, seed, keyLength, iv);
+		seedProcess(inStream, outStream, paddingMode, Cipher.DECRYPT_MODE, seed, keyLength, iv);
 	}
 
 	/**
@@ -251,14 +251,16 @@ public class CommonSecurity {
 	 * @return
 	 * @throws Exception
 	 */
-	private static SecretKey genKeyWithSeed(byte[] seed, Integer keyLength, String keyAlgorithm) throws Exception {
+	public static SecretKey genKeyWithSeed(byte[] seed, Integer keyLength, String keyAlgorithm) throws Exception {
 		keyLength = null != keyLength ? keyLength : 256;
 
+		SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
+		secureRandom.setSeed(seed);
+
 		KeyGenerator kg = KeyGenerator.getInstance(keyAlgorithm);
-		kg.init(keyLength, new SecureRandom(seed));
+		kg.init(keyLength, secureRandom);
 
 		return kg.generateKey();
 	}
-
 
 }
