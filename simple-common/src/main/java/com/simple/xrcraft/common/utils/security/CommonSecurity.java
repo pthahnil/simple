@@ -6,6 +6,7 @@ import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -28,14 +29,15 @@ public class CommonSecurity {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] encrypt(byte[] info, byte[] key, String paddingMode) throws Exception {
+	public static byte[] encrypt(byte[] info, byte[] key, String paddingMode,
+			byte[] iv) throws Exception {
 		InputStream inStream = null;
 		ByteArrayOutputStream outStream = null;
 		try {
 			inStream = new ByteArrayInputStream(info);
 			outStream = new ByteArrayOutputStream();
 
-			encrypt(inStream, outStream, paddingMode, key);
+			encrypt(inStream, outStream, paddingMode, key, iv);
 
 			inStream.close();
 			outStream.close();
@@ -54,15 +56,15 @@ public class CommonSecurity {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] decrypt(byte[] info, byte[] key, String paddingMode) throws Exception {
+	public static byte[] decrypt(byte[] info, byte[] key, String paddingMode,
+			byte[] iv) throws Exception {
 		InputStream inStream = null;
 		ByteArrayOutputStream outStream = null;
 		try {
 			inStream = new ByteArrayInputStream(info);
 			outStream = new ByteArrayOutputStream();
 
-			decrypt(inStream, outStream, paddingMode, key);
-
+			decrypt(inStream, outStream, paddingMode, key, iv);
 
 			inStream.close();
 			outStream.close();
@@ -82,14 +84,15 @@ public class CommonSecurity {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] seedEncrypt(byte[] info, byte[] seed, String paddingMode, Integer keyLength) throws Exception {
+	public static byte[] seedEncrypt(byte[] info, byte[] seed, String paddingMode
+			, Integer keyLength, byte[] iv) throws Exception {
 		InputStream inStream = null;
 		ByteArrayOutputStream outStream = null;
 		try {
 			inStream = new ByteArrayInputStream(info);
 			outStream = new ByteArrayOutputStream();
 
-			seedEncrypt(inStream, outStream, paddingMode, seed, keyLength);
+			seedEncrypt(inStream, outStream, paddingMode, seed, keyLength, iv);
 
 			inStream.close();
 			outStream.close();
@@ -109,14 +112,15 @@ public class CommonSecurity {
 	 * @return
 	 * @throws Exception
 	 */
-	public static byte[] seedDecrypt(byte[] info, byte[] seed, String paddingMode, Integer keyLength) throws Exception {
+	public static byte[] seedDecrypt(byte[] info, byte[] seed, String paddingMode
+			, Integer keyLength, byte[] iv) throws Exception {
 		InputStream inStream = null;
 		ByteArrayOutputStream outStream = null;
 		try {
 			inStream = new ByteArrayInputStream(info);
 			outStream = new ByteArrayOutputStream();
 
-			seedDecrypt(inStream, outStream, paddingMode, seed, keyLength);
+			seedDecrypt(inStream, outStream, paddingMode, seed, keyLength, iv);
 
 			inStream.close();
 			outStream.close();
@@ -136,8 +140,8 @@ public class CommonSecurity {
 	 * @throws Exception
 	 */
 	public static void encrypt(InputStream inStream, OutputStream outStream, String paddingMode,
-			byte[] key) throws Exception {
-		process(inStream, outStream, paddingMode, Cipher.ENCRYPT_MODE, key);
+			byte[] key, byte[] iv) throws Exception {
+		process(inStream, outStream, paddingMode, Cipher.ENCRYPT_MODE, key, iv);
 	}
 
 	/**
@@ -149,8 +153,8 @@ public class CommonSecurity {
 	 * @throws Exception
 	 */
 	public static void decrypt(InputStream inStream, OutputStream outStream, String paddingMode,
-			byte[] key) throws Exception {
-		process(inStream, outStream, paddingMode, Cipher.DECRYPT_MODE, key);
+			byte[] key, byte[] iv) throws Exception {
+		process(inStream, outStream, paddingMode, Cipher.DECRYPT_MODE, key, iv);
 	}
 
 	/**
@@ -163,8 +167,8 @@ public class CommonSecurity {
 	 * @throws Exception
 	 */
 	public static void seedEncrypt(InputStream inStream, OutputStream outStream, String paddingMode,
-			byte[] seed, Integer keyLength) throws Exception {
-		seedProcess(inStream, outStream, paddingMode, Cipher.ENCRYPT_MODE, seed, keyLength);
+			byte[] seed, Integer keyLength, byte[] iv) throws Exception {
+		seedProcess(inStream, outStream, paddingMode, Cipher.ENCRYPT_MODE, seed, keyLength, iv);
 	}
 
 	/**
@@ -177,8 +181,8 @@ public class CommonSecurity {
 	 * @throws Exception
 	 */
 	public static void seedDecrypt(InputStream inStream, OutputStream outStream, String paddingMode,
-			byte[] seed, Integer keyLength) throws Exception {
-		seedProcess(inStream, outStream, paddingMode, Cipher.ENCRYPT_MODE, seed, keyLength);
+			byte[] seed, Integer keyLength, byte[] iv) throws Exception {
+		seedProcess(inStream, outStream, paddingMode, Cipher.ENCRYPT_MODE, seed, keyLength, iv);
 	}
 
 	/**
@@ -190,12 +194,12 @@ public class CommonSecurity {
 	 * @throws Exception
 	 */
 	private static void process(InputStream inStream, OutputStream outStream, String paddingAlgorithm
-			, int opMode, byte[] key) throws Exception {
+			, int opMode, byte[] key, byte[] iv) throws Exception {
 
 		String keyAlgorithm = paddingAlgorithm.contains("/") ? paddingAlgorithm.substring(0, paddingAlgorithm.indexOf("/")) : paddingAlgorithm;
 
 		SecretKey secretKey = new SecretKeySpec(key, keyAlgorithm);
-		universalProcess(inStream, outStream, paddingAlgorithm, opMode, secretKey);
+		universalProcess(inStream, outStream, paddingAlgorithm, opMode, secretKey, iv);
 	}
 
 	/**
@@ -209,12 +213,12 @@ public class CommonSecurity {
 	 * @throws Exception
 	 */
 	private static void seedProcess(InputStream inStream, OutputStream outStream, String paddingAlgorithm
-			, int opMode, byte[] seed, Integer keyLength) throws Exception {
+			, int opMode, byte[] seed, Integer keyLength, byte[] iv) throws Exception {
 
 		String keyAlgorithm = paddingAlgorithm.contains("/") ? paddingAlgorithm.substring(0, paddingAlgorithm.indexOf("/")) : paddingAlgorithm;
 
 		SecretKey secretKey = genKeyWithSeed(seed, keyLength, keyAlgorithm);
-		universalProcess(inStream, outStream, paddingAlgorithm, opMode, secretKey);
+		universalProcess(inStream, outStream, paddingAlgorithm, opMode, secretKey, iv);
 	}
 
 	/**
@@ -227,10 +231,12 @@ public class CommonSecurity {
 	 * @throws Exception
 	 */
 	private static void universalProcess(InputStream inStream, OutputStream outStream, String paddingAlgorithm
-			, int opMode, SecretKey secretKey) throws Exception {
+			, int opMode, SecretKey secretKey, byte[] iv) throws Exception {
+
+		IvParameterSpec ivSpec = null != iv && iv.length > 0 ? new IvParameterSpec(iv) : null;
 
 		Cipher cipher = Cipher.getInstance(paddingAlgorithm);
-		cipher.init(opMode, secretKey);
+		cipher.init(opMode, secretKey, ivSpec);
 
 		CipherOutputStream cipherOutputStream = new CipherOutputStream(outStream, cipher);
 
