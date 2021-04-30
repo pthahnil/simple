@@ -3,10 +3,8 @@ package com.simple.xrcraft.common.utils.security;
 import org.apache.commons.io.IOUtils;
 
 import javax.crypto.Cipher;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -19,7 +17,7 @@ import java.security.SecureRandom;
  * @author pthahnil
  * @date 2021/4/28 17:42
  */
-public class CommonSecurity {
+public class SymmetricSecurity extends SecurityUtil {
 
 	/**
 	 * 加密
@@ -222,44 +220,22 @@ public class CommonSecurity {
 	}
 
 	/**
-	 * main process
-	 * @param inStream
-	 * @param outStream
-	 * @param paddingAlgorithm
-	 * @param opMode
-	 * @param secretKey
-	 * @throws Exception
-	 */
-	private static void universalProcess(InputStream inStream, OutputStream outStream, String paddingAlgorithm
-			, int opMode, SecretKey secretKey, byte[] iv) throws Exception {
-
-		IvParameterSpec ivSpec = null != iv && iv.length > 0 ? new IvParameterSpec(iv) : null;
-
-		Cipher cipher = Cipher.getInstance(paddingAlgorithm);
-		cipher.init(opMode, secretKey, ivSpec);
-
-		CipherOutputStream cipherOutputStream = new CipherOutputStream(outStream, cipher);
-
-		IOUtils.copy(inStream, cipherOutputStream);
-
-		cipherOutputStream.close();
-	}
-
-	/**
 	 * generate key with seed
 	 * @param seed
 	 * @return
 	 * @throws Exception
 	 */
 	public static SecretKey genKeyWithSeed(byte[] seed, Integer keyLength, String keyAlgorithm) throws Exception {
-		keyLength = null != keyLength ? keyLength : 256;
 
 		SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
 		secureRandom.setSeed(seed);
 
 		KeyGenerator kg = KeyGenerator.getInstance(keyAlgorithm);
-		kg.init(keyLength, secureRandom);
-
+		if(null != keyLength){
+			kg.init(keyLength, secureRandom);
+		} else {
+			kg.init(secureRandom);
+		}
 		return kg.generateKey();
 	}
 
