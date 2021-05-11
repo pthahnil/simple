@@ -8,7 +8,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -94,7 +96,7 @@ public class ZipUtil {
 	 * @param file
 	 * @throws Exception
 	 */
-	public static void unzip(File file) throws Exception {
+	public static List<File> unzip(File file) throws Exception {
 		if(null == file || !file.exists()){
 			throw new Exception("file does't exists");
 		}
@@ -106,7 +108,7 @@ public class ZipUtil {
 		String basePath = file.getParentFile().getCanonicalPath();
 		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
 
-
+		List<File> files = new ArrayList<>();
 		while (entryIt.hasMoreElements()) {
 			ZipEntry entry = entryIt.nextElement();
 
@@ -121,13 +123,15 @@ public class ZipUtil {
 					unzipedFile.delete();
 				}
 				unzipedFile.createNewFile();
+				files.add(unzipedFile);
 				FileOutputStream fos = new FileOutputStream(unzipedFile);
 				InputStream ins = zipFile.getInputStream(entry);
 				IOUtils.copy(ins, fos);
 				fos.flush();
-				fos.close();
+				IOUtils.closeQuietly(fos);
 			}
 		}
+		return files;
 	}
 
 }
