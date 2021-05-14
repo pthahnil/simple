@@ -64,19 +64,30 @@ public class CertUtils {
 	 * @throws Exception
 	 */
 	public static String extractPublicKey(String privateKey) throws Exception {
-		KeyFactory keyFactory = KeyFactory.getInstance(ALGORITHM);
 
 		BASE64Decoder base64Decoder = new BASE64Decoder();
 		byte[] keyBytes = base64Decoder.decodeBuffer(privateKey);
-		Key key = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
+		PrivateKey key = loadPrivateKey(keyBytes);
 
-		RSAPrivateKeySpec priv = keyFactory.getKeySpec(key, RSAPrivateKeySpec.class);
-		RSAPublicKeySpec keySpec = new RSAPublicKeySpec(priv.getModulus(), BigInteger.valueOf(65537));
-
-		PublicKey publicKey = keyFactory.generatePublic(keySpec);
+		PublicKey publicKey = extractPublicKey(key);
 
 		BASE64Encoder encoder = new BASE64Encoder();
 		return encoder.encode(publicKey.getEncoded());
+	}
+
+	/**
+	 * 私钥提取公钥
+	 * @param privateKey
+	 * @return
+	 * @throws Exception
+	 */
+	public static PublicKey extractPublicKey(PrivateKey privateKey) throws Exception {
+		KeyFactory keyFactory = KeyFactory.getInstance(privateKey.getAlgorithm());
+
+		RSAPrivateKeySpec priv = keyFactory.getKeySpec(privateKey, RSAPrivateKeySpec.class);
+		RSAPublicKeySpec keySpec = new RSAPublicKeySpec(priv.getModulus(), BigInteger.valueOf(65537));
+
+		return keyFactory.generatePublic(keySpec);
 	}
 
 	/**
