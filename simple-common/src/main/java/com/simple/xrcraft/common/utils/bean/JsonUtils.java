@@ -87,7 +87,7 @@ public class JsonUtils {
             JsonGenerator gen = new JsonFactory().createGenerator(sw);
             mapper.writeValue(gen, haveIgnoredVar ? rootNode : bean);
         } catch (Exception e) {
-            log.error("转换异常");
+            log.error("转换异常", e);
             return null;
         }
         return sw.toString();

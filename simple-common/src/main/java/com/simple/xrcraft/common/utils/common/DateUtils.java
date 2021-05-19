@@ -209,10 +209,7 @@ public class DateUtils {
 		if(StringUtils.isBlank(pattern)){
 			return null;
 		}
-		String[] blankReplaceMents = new String[]{"-", "/", "_", " ", ":", "年", "月", "日", "时", "分", "秒"};
-		for (String blankReplaceMent : blankReplaceMents) {
-			pattern = pattern.replace(blankReplaceMent, "");
-		}
+		pattern = pattern.replaceAll("\\W", "");
 		return StringUtils.trimToEmpty(pattern);
 	}
 
@@ -317,11 +314,9 @@ public class DateUtils {
 		if(null == date){
 			return 0;
 		}
-
 		if(null == sortedGaps || sortedGaps.size() == 0){
 			return 0;
 		}
-
 		for (Integer gap : sortedGaps) {
 			if(timeGapGraterThen(date, gap)){
 				return gap;

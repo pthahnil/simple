@@ -16,16 +16,11 @@ public class SignUtils {
 	 * @param algorithm
 	 * @return
 	 */
-	public static byte[] sign(PrivateKey privateKey, byte[] data, String algorithm) {
-		try {
-			Signature signature = Signature.getInstance(algorithm);
-			signature.initSign(privateKey);
-			signature.update(data);
-			byte[] sign = signature.sign();
-			return sign;
-		} catch (Exception var5) {
-			throw new RuntimeException(var5);
-		}
+	public static byte[] sign(PrivateKey privateKey, byte[] data, String algorithm) throws Exception {
+		Signature signature = Signature.getInstance(algorithm);
+		signature.initSign(privateKey);
+		signature.update(data);
+		return signature.sign();
 	}
 
 	/**
@@ -36,15 +31,11 @@ public class SignUtils {
 	 * @param algorithm
 	 * @return
 	 */
-	public static boolean valifySign(PublicKey publicKey, byte[] data, byte[] sign, String algorithm) {
-		try {
-			Signature signature = Signature.getInstance(algorithm);
-			signature.initVerify(publicKey);
-			signature.update(data);
-			return signature.verify(sign);
-		} catch (Exception var5) {
-			throw new RuntimeException(var5);
-		}
+	public static boolean valifySign(PublicKey publicKey, byte[] data, byte[] sign, String algorithm) throws Exception {
+		Signature signature = Signature.getInstance(algorithm);
+		signature.initVerify(publicKey);
+		signature.update(data);
+		return signature.verify(sign);
 	}
 
 }

@@ -19,7 +19,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -33,19 +32,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.InterruptedIOException;
-import java.net.URI;
 import java.net.UnknownHostException;
-import java.security.KeyStore;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -58,10 +48,7 @@ import java.util.stream.Collectors;
  * Created by lixiaorong on 2018/11/5.
  */
 @Slf4j
-public class HttpClientUtil {
-
-	//超时
-	private static int CONNECT_TIMEOUT = 20 * 1000;
+public class HttpClientUtil extends BaseHttpOperation {
 
 	//默认连接池最大=====基本请求都用默认，所以线程数设大一点
 	private static int POOL_MAX_DEFAULT = 20;
@@ -182,7 +169,7 @@ public class HttpClientUtil {
 			return null;
 		}
 
-		String getUrl = raw ? assembleGetUrlRaw(url, model.getParams()) : assembleGetUrl(url, model.getParams()).toString();
+		String getUrl = assembleGetUrl(url, model.getParams()).toString();
 
 		HttpGet method = new HttpGet(getUrl);
 
@@ -247,45 +234,6 @@ public class HttpClientUtil {
 	}
 
 	/**
-	 * ssl with cert files
-	 * @param keyStore
-	 * @param pwd
-	 * @return
-	 * @throws Exception
-	 */
-	public static SSLContext getSslContext(KeyStore keyStore, String pwd) throws Exception {
-		TrustManager[] tmgs = new TrustManager[]{getTrustAllManager()};
-		KeyManager[] kmgs = null;
-
-		SSLContext ctx = SSLContext.getInstance("TLS");
-		if(null != keyStore){
-			char[] pass = StringUtils.isNotBlank(pwd) ? pwd.toCharArray() : null;
-
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-			kmf.init(keyStore, pass);
-
-			kmgs = kmf.getKeyManagers();
-		}
-		ctx.init(kmgs, tmgs, null);
-
-		return ctx;
-	}
-
-	/**
-	 * trustAll
-	 * @return
-	 */
-	private static TrustManager getTrustAllManager(){
-		return new X509TrustManager() {
-			public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
-			public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
-			public X509Certificate[] getAcceptedIssuers() {
-				return null;
-			}
-		};
-	}
-
-	/**
 	 * 注意！！！外部使用这个方法，必须释放连接
 	 * @return
 	 * @throws Exception
@@ -309,22 +257,12 @@ public class HttpClientUtil {
 	 * @return
 	 */
 	public static CloseableHttpClient getClient(KeyStoreProps props, BasicCookieStore cookieStore) throws Exception {
-		KeyStore keyStore = null;
-		String keyStoreName = null;
-		String certPwd = null;
 
-		if(null != props){
-			keyStore = props.getKeyStore();
-			keyStoreName = props.getKeyStoreAlias();
-			certPwd = props.getCertPwd();
-		}
-
-		boolean isDefault = null == keyStore;
-
-		String key = isDefault ? DEFAULT_POOL : keyStoreName;
+		boolean isDefault = null == props && null != props.getStream();
+		String key = isDefault ? DEFAULT_POOL : props.getKeyStoreAlias();
 		PoolingHttpClientConnectionManager connectionManager = mappedConnManger.get(key);
 		if(null == connectionManager) {
-			Registry<ConnectionSocketFactory> registry = getRegistry(keyStore, certPwd);
+			Registry<ConnectionSocketFactory> registry = getRegistry(props);
 
 			connectionManager = new PoolingHttpClientConnectionManager(registry);
 			connectionManager.setMaxTotal(isDefault ? POOL_MAX_DEFAULT : POOL_MAX_CT);
@@ -392,8 +330,8 @@ public class HttpClientUtil {
 	 * @return
 	 * @throws Exception
 	 */
-	private static Registry<ConnectionSocketFactory> getRegistry(KeyStore keyStore, String certPwd) throws Exception {
-		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(getSslContext(keyStore, certPwd));
+	private static Registry<ConnectionSocketFactory> getRegistry(KeyStoreProps props) throws Exception {
+		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(getSslContext(props));
 
 		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
 				.register(HttpConstants.PROTOCOL_HTTP, PLAIN_SF)
@@ -410,54 +348,14 @@ public class HttpClientUtil {
 	private static RequestConfig getReqConfig(){
 		if(null == REQ_CONFIG){
 			REQ_CONFIG = RequestConfig.custom()
-					.setSocketTimeout(CONNECT_TIMEOUT)
-					.setConnectTimeout(CONNECT_TIMEOUT)
-					.setConnectionRequestTimeout(CONNECT_TIMEOUT)
+					.setSocketTimeout(READ_TIME_OUT)
+					.setConnectTimeout(CONN_TIME_OUT)
+					.setConnectionRequestTimeout(CONN_REQ_TIME_OUT)
 					.setCircularRedirectsAllowed(false)//不跳转
 					.setRedirectsEnabled(false)//不跳转
 					.build();
 		}
 		return REQ_CONFIG;
-	}
-
-	/**
-	 * 组装get地址
-	 * @param url
-	 * @param params
-	 * @return
-	 */
-	public static URI assembleGetUrl(String url, Map<String, Object> params) throws Exception {
-
-		URIBuilder builder = new URIBuilder(url);
-		if(MapUtils.isNotEmpty(params)){
-			for (Map.Entry<String, Object> entry : params.entrySet()) {
-				String key = entry.getKey();
-				String value = String.valueOf(null != entry.getValue() ? entry.getValue() : "");
-				builder.addParameter(key, value);
-			}
-		}
-		return builder.build();
-	}
-
-	/**
-	 * 组装get地址
-	 * @param url
-	 * @param params
-	 * @return
-	 */
-	public static String assembleGetUrlRaw(String url, Map<String, Object> params) throws Exception {
-
-		StringBuilder builder = new StringBuilder();
-		builder.append(url);
-
-		if(null != params && !params.isEmpty()){
-			String paramsStr = params.entrySet()
-					.stream()
-					.map(ent -> ent.getKey() + "=" + ((null != ent.getValue()) ? String.valueOf(ent.getValue()) : ""))
-					.collect(Collectors.joining(HttpConstants.SEPERATOR_AND));
-			builder.append("?").append(paramsStr);
-		}
-		return builder.toString();
 	}
 
 }

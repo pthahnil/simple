@@ -113,7 +113,7 @@ public class SftpUtil {
 			log.debug("directory successfully changed,current dir=" + conn.getChannel().pwd());
 			return true;
 		} catch (SftpException e) {
-			log.error("failed to change directory", e);
+			log.error("failed to change directory");
 			return false;
 		}
 	}
@@ -142,7 +142,7 @@ public class SftpUtil {
 		try {
 			homeDir = conn.getChannel().getHome();
 		} catch (SftpException e) {
-			log.error("can not get home directory", e);
+			log.error("can not get home directory");
 			return false;
 		}
 		return changeDir(conn, homeDir);
@@ -179,7 +179,7 @@ public class SftpUtil {
 			log.debug("directory successfully created,dir=" + dirName);
 			return true;
 		} catch (SftpException e) {
-			log.error("failed to create directory", e);
+			log.error("failed to create directory");
 			return false;
 		}
 	}
@@ -206,7 +206,7 @@ public class SftpUtil {
 		try {
 			list = conn.getChannel().ls(conn.getChannel().pwd());
 		} catch (SftpException e) {
-			log.error("can not list directory", e);
+			log.error("can not list directory");
 			return false;
 		}
 
@@ -230,7 +230,7 @@ public class SftpUtil {
 			log.debug("directory " + dirName + " successfully deleted");
 			return true;
 		} catch (SftpException e) {
-			log.error("failed to delete directory " + dirName, e);
+			log.error("failed to delete directory " + dirName);
 			return false;
 		}
 	}
@@ -258,7 +258,7 @@ public class SftpUtil {
 			log.debug("file " + fileName + " successfully deleted");
 			return true;
 		} catch (SftpException e) {
-			log.error("failed to delete file " + fileName, e);
+			log.error("failed to delete file " + fileName);
 			return false;
 		}
 	}
@@ -429,7 +429,7 @@ public class SftpUtil {
 		try {
 			return conn.getChannel().pwd();
 		} catch (SftpException e) {
-			log.error("failed to get current dir", e);
+			log.error("failed to get current dir");
 			return homeDir(conn);
 		}
 	}
@@ -463,7 +463,7 @@ public class SftpUtil {
 			//ls方法会返回两个特殊的目录，当前目录(.)和父目录(..)
 			list = conn.getChannel().ls(conn.getChannel().pwd());
 		} catch (SftpException e) {
-			log.error("can not list directory", e);
+			log.error("can not list directory");
 			return new String[0];
 		}
 

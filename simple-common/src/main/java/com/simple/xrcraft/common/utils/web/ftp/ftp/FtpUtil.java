@@ -68,7 +68,7 @@ public class FtpUtil {
 
 			return true;
 		} catch (Exception e) {
-			log.error("download file:{} from:{} failed", serverFileName, conn.getHost());
+			log.error("download file:{} from:{} failed", serverFileName, conn.getHost(), e);
 			return false;
 		} finally {
 			conn.disconnect();
@@ -107,7 +107,7 @@ public class FtpUtil {
 			}
 			return uploadSucc;
 		} catch (Exception e) {
-			log.error("upload file:{} to:{} failed", serverFileName, conn.getHost());
+			log.error("upload file:{} to:{} failed", serverFileName, conn.getHost(), e);
 			return false;
 		} finally {
 			conn.disconnect();

@@ -201,8 +201,6 @@ public class RsaUtil {
 				offSet = i * maxBlock;
 			}
 			resultDatas = out.toByteArray();
-		} catch (Exception e) {
-			throw new RuntimeException("加解密阀值为[" + maxBlock + "]的数据时发生异常", e);
 		} finally {
 			if(null != out){
 				try { out.close(); } catch (Exception e) { }
@@ -230,6 +228,5 @@ public class RsaUtil {
 			throw new RuntimeException("neither a rsa private nor a public key");
 		}
 	}
-
 
 }
