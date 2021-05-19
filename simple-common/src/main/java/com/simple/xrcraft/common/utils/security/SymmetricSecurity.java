@@ -5,6 +5,7 @@ import org.apache.commons.io.IOUtils;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -197,7 +198,8 @@ public class SymmetricSecurity extends SecurityUtil {
 		String keyAlgorithm = paddingAlgorithm.contains("/") ? paddingAlgorithm.substring(0, paddingAlgorithm.indexOf("/")) : paddingAlgorithm;
 
 		SecretKey secretKey = new SecretKeySpec(key, keyAlgorithm);
-		universalProcess(inStream, outStream, paddingAlgorithm, opMode, secretKey, iv);
+		IvParameterSpec ivSpec = null != iv && iv.length > 0 ? new IvParameterSpec(iv) : null;
+		universalProcess(inStream, outStream, paddingAlgorithm, opMode, secretKey, ivSpec);
 	}
 
 	/**
@@ -216,7 +218,8 @@ public class SymmetricSecurity extends SecurityUtil {
 		String keyAlgorithm = paddingAlgorithm.contains("/") ? paddingAlgorithm.substring(0, paddingAlgorithm.indexOf("/")) : paddingAlgorithm;
 
 		SecretKey secretKey = genKeyWithSeed(seed, keyLength, keyAlgorithm);
-		universalProcess(inStream, outStream, paddingAlgorithm, opMode, secretKey, iv);
+		IvParameterSpec ivSpec = null != iv && iv.length > 0 ? new IvParameterSpec(iv) : null;
+		universalProcess(inStream, outStream, paddingAlgorithm, opMode, secretKey, ivSpec);
 	}
 
 	/**

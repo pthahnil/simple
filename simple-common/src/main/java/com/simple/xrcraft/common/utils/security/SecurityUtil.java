@@ -5,11 +5,11 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
-import javax.crypto.spec.IvParameterSpec;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.Key;
 import java.security.Security;
+import java.security.spec.AlgorithmParameterSpec;
 
 /**
  * @description:
@@ -32,9 +32,7 @@ public class SecurityUtil {
 	 * @throws Exception
 	 */
 	protected static void universalProcess(InputStream inStream, OutputStream outStream, String paddingAlgorithm
-			, int opMode, Key key, byte[] iv) throws Exception {
-
-		IvParameterSpec ivSpec = null != iv && iv.length > 0 ? new IvParameterSpec(iv) : null;
+			, int opMode, Key key, AlgorithmParameterSpec ivSpec) throws Exception {
 
 		Cipher cipher = Cipher.getInstance(paddingAlgorithm);
 		cipher.init(opMode, key, ivSpec);
