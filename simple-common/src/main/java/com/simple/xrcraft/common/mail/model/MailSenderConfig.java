@@ -1,7 +1,8 @@
 package com.simple.xrcraft.common.mail.model;
 
 import lombok.Data;
-import org.hibernate.validator.constraints.NotBlank;
+
+import javax.validation.constraints.NotBlank;
 
 /**
  * @description:
