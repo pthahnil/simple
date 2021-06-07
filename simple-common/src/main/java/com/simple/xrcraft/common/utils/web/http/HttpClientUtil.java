@@ -35,11 +35,11 @@ import org.apache.http.util.EntityUtils;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.InterruptedIOException;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  *  https://www.programcreek.com/java-api-examples/?class=org.apache.http.impl.conn.PoolingHttpClientConnectionManager&method=setMaxPerRoute
@@ -95,20 +95,12 @@ public class HttpClientUtil extends BaseHttpOperation {
 	public static <T> T post(String url, HttpExchangeModel model, KeyStoreProps props, Class<T> clazz) throws Exception {
 
 		if(StringUtils.isBlank(url)){
-			return null;
+			throw new RuntimeException("url is null");
 		}
 
 		if(MapUtils.isNotEmpty(model.getUrlParams())){
-			Map<String, Object> urlParams = model.getUrlParams();
-			String urlParamsStr = urlParams.entrySet().stream().map(ent -> ent.getKey() + "=" + ent.getValue()).collect(Collectors.joining("&"));
-
-			String appender = null;
-			if(url.contains("?")){
-				appender = "&";
-			} else {
-				appender = "?";
-			}
-			url = url + appender + urlParamsStr;
+			URI uri = assembleGetUrl(url, model.getUrlParams());
+			url = uri.toString();
 		}
 
 		HttpPost method = new HttpPost(url);
@@ -141,15 +133,15 @@ public class HttpClientUtil extends BaseHttpOperation {
 	}
 
 	public static String doGet(String url) throws Exception {
-		return doGet(url, null, null, String.class, true);
+		return doGet(url, null, null, String.class);
 	}
 
 	public static <T> T doGet(String url, Class<T> clazz) throws Exception {
-		return doGet(url, null, null, clazz, true);
+		return doGet(url, null, null, clazz);
 	}
 
-	public static String doGet(String url, HttpExchangeModel model, KeyStoreProps props, boolean raw) throws Exception {
-		return doGet(url, model, props, raw);
+	public static String doGet(String url, HttpExchangeModel model, KeyStoreProps props) throws Exception {
+		return doGet(url, model, props, String.class);
 	}
 
 	/**
@@ -158,15 +150,14 @@ public class HttpClientUtil extends BaseHttpOperation {
 	 * @param model
 	 * @param props
 	 * @param clazz
-	 * @param raw
 	 * @param <T>
 	 * @return
 	 * @throws Exception
 	 */
-	public static <T> T doGet(String url, HttpExchangeModel model, KeyStoreProps props, Class<T> clazz, boolean raw) throws Exception {
+	public static <T> T doGet(String url, HttpExchangeModel model, KeyStoreProps props, Class<T> clazz) throws Exception {
 
 		if(StringUtils.isBlank(url)){
-			return null;
+			throw new RuntimeException("url is null");
 		}
 
 		String getUrl = assembleGetUrl(url, model.getParams()).toString();

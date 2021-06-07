@@ -20,6 +20,17 @@ import java.util.Properties;
 public class JavaMailUtil {
 
 	/**
+	 * 邮件发送
+	 * @param content
+	 * @return
+	 * @throws Exception
+	 */
+	public static void sendMessage(JavaMailSenderImpl mailSender, MailContent content) throws Exception {
+		MimeMessage message = getMimeMessage(mailSender, content);
+		mailSender.send(message);
+	}
+
+	/**
 	 * 邮件内容组装
 	 * @param content
 	 * @return
