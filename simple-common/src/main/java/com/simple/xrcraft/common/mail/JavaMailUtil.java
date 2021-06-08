@@ -45,7 +45,7 @@ public class JavaMailUtil {
 
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
 		MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-		messageHelper.setTo(content.getReceivers());
+		messageHelper.setTo(content.getReceivers().split(","));
 		messageHelper.setFrom(content.getSender());
 		messageHelper.setSubject(content.getSubject());
 		if(StringUtils.isNotBlank(content.getText())){

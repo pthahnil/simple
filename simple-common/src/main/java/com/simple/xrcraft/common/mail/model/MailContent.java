@@ -14,7 +14,7 @@ import javax.validation.constraints.NotBlank;
 public class MailContent {
 
 	@NotBlank(message = "邮件接收人不能为空")
-	private String[] receivers;
+	private String receivers;
 
 	@NotBlank(message = "邮件主题为空")
 	private String subject;
