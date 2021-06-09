@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class PatternUtil {
 
 	/**身份证前17位的系数*/
-	public static final String[] checkNum = {"7","9","10","5","8","4","2","1","6","3","7","9","10","5","8","4","2"};
+	public static final int[] checkNum = {7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2};
 	/**身份证最后一位*/
 	public static final String[] remNums = {"1","0","X ","9","8","7","6","5","4","3","2"};
 
@@ -32,6 +32,55 @@ public class PatternUtil {
 
 	/**手机号长度的匹配*/
 	private static Pattern PHONE_NO_PATTERN = Pattern.compile("1{1}\\d{10}");
+
+	/*银行卡*/
+	private static Pattern BANK_CARD_PATTERN = Pattern.compile("\\d{12,19}");
+
+	/**
+	 * 银行卡基本正则校验
+	 * @param bankCardNo
+	 * @return
+	 */
+	public static boolean bankCardPatternCheck(String bankCardNo) {
+		if(StringUtils.isBlank(bankCardNo)) {
+			return false;
+		}
+		Matcher matcher = BANK_CARD_PATTERN.matcher(bankCardNo);
+		return matcher.matches();
+	}
+
+	/**
+	 * 银行卡 Luhn算法 校验
+	 * @param bankCardNo
+	 * @return
+	 */
+	public static boolean bankCarLastNumCheck(String bankCardNo) {
+		if(!bankCardPatternCheck(bankCardNo)){
+			return false;
+		}
+
+		String[] numbers = bankCardNo.split("");
+		int checkNumber = Integer.parseInt(numbers[numbers.length-1]);
+
+		int length = numbers.length;
+
+		Integer num = 0;
+		for (int i = 0; i < length - 1; i++) {
+			Integer ori = Integer.parseInt(numbers[i]);
+			if((i+1) % 2 == 0){
+				Integer mul = ori * 2;
+				num += (mul / 10 + mul % 10);
+			} else {
+				num += ori;
+			}
+		}
+		Integer i = num % 10;
+		Integer targetLastNum = 0;
+		if(i < 10){
+			targetLastNum = 10 - i;
+		}
+		return targetLastNum == checkNumber;
+	}
 
 	/**
 	 * 手机号基本正则校验
@@ -68,13 +117,15 @@ public class PatternUtil {
 		if(!idCardPatternCheck(idCardNo)) {
 			return false;
 		}
-		String actualLastNum = idCardNo.substring(17);
-		String[] nums = idCardNo.substring(0, 17).split("");
+		String[] strSegs = idCardNo.split("");
+
+		int idCardLength = idCardNo.length();
+		String actualLastNum = strSegs[idCardLength - 1];
 
 		Integer add = 0;
-		for (int i = 0; i < nums.length; i++) {
-			Integer fi = Integer.parseInt(nums[i]);
-			Integer si = Integer.parseInt(checkNum[i]);
+		for (int i = 0; i < idCardLength - 1; i++) {
+			Integer fi = Integer.parseInt(strSegs[i]);
+			Integer si = checkNum[i];
 			add += (fi * si);
 		}
 		String estematedLastNum = remNums[add % 11];

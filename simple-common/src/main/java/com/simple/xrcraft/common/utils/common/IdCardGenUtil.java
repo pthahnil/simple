@@ -130,7 +130,7 @@ public class IdCardGenUtil {
 		Integer add = 0;
 		for (int i = 0; i < nums.length; i++) {
 			Integer fi = Integer.parseInt(nums[i]);
-			Integer si = Integer.parseInt(PatternUtil.checkNum[i]);
+			Integer si = PatternUtil.checkNum[i];
 			add += (fi * si);
 		}
 
