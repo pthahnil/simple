@@ -46,21 +46,6 @@ public class SM2 {
     private static ECPoint G = curve.createPoint(gx, gy);
     private static ECDomainParameters ecc_bc_spec = new ECDomainParameters(curve, G, n);
 
-    /**
-     * 以16进制打印字节数组
-     *
-     * @param b
-     */
-    public static void printHexString(byte[] b) {
-        for (int i = 0; i < b.length; i++) {
-            String hex = Integer.toHexString(b[i] & 0xFF);
-            if (hex.length() == 1) {
-                hex = '0' + hex;
-            }
-            System.out.print(hex.toUpperCase());
-        }
-        System.out.println();
-    }
 
     /**
      * 随机数生成器
