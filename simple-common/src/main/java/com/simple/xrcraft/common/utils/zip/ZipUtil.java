@@ -1,5 +1,6 @@
-package com.simple.xrcraft.common.utils.zip;
+package com.wimift.balance.core.utils;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -22,10 +23,6 @@ import java.util.zip.ZipOutputStream;
  */
 public class ZipUtil {
 
-	public static void zipFile(File fileToZip) throws IOException {
-		zipFile(fileToZip, null);
-	}
-
 	/**
 	 * 递归压缩
 	 * @param fileToZip
@@ -41,21 +38,23 @@ public class ZipUtil {
 			fileName = fileToZip.getName();
 		}
 
-		String trueFileName = fileToZip.getName();
-		if(!fileToZip.isDirectory()) {
-			trueFileName = fileToZip.getName().substring(0, fileToZip.getName().lastIndexOf("."));
+		String baseName = FilenameUtils.getBaseName(fileName);
+		String targetFileName = baseName + ".zip";
+		File zipFile = new File(fileToZip.getParent(), targetFileName);
+
+		FileOutputStream fos = null;
+		ZipOutputStream zos = null;
+		try {
+			fos = new FileOutputStream(zipFile);
+			zos = new ZipOutputStream(fos);
+			zipFile(fileToZip, fileName, zos);
+			zos.flush();
+			fos.flush();
+		} finally {
+			IOUtils.closeQuietly(zos);
+			IOUtils.closeQuietly(fos);
 		}
 
-		String targetFileName = trueFileName + ".zip";
-		File zipFile = new File(fileToZip.getParent(), targetFileName);
-		FileOutputStream fos = new FileOutputStream(zipFile);
-		ZipOutputStream zos = new ZipOutputStream(fos);
-		zipFile(fileToZip, fileName, zos);
-		zos.flush();
-		fos.flush();
-
-		zos.close();
-		fos.close();
 	}
 
 	/**
@@ -65,7 +64,7 @@ public class ZipUtil {
 	 * @param zipOut
 	 * @throws IOException
 	 */
-	private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws
+	public static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws
 			IOException {
 		if (fileToZip.isHidden()) {
 			return;
@@ -80,15 +79,19 @@ public class ZipUtil {
 			}
 			return;
 		}
-		FileInputStream fis = new FileInputStream(fileToZip);
-		ZipEntry zipEntry = new ZipEntry(fileName);
-		zipOut.putNextEntry(zipEntry);
-		byte[] bytes = new byte[1024];
-		int length;
-		while ((length = fis.read(bytes)) >= 0) {
-			zipOut.write(bytes, 0, length);
+		FileInputStream fis = null;
+		try {
+			fis = new FileInputStream(fileToZip);
+			ZipEntry zipEntry = new ZipEntry(fileName);
+			zipOut.putNextEntry(zipEntry);
+			byte[] bytes = new byte[1024];
+			int length;
+			while ((length = fis.read(bytes)) >= 0) {
+				zipOut.write(bytes, 0, length);
+			}
+		} finally {
+			fis.close();
 		}
-		fis.close();
 	}
 
 	/**
@@ -102,36 +105,42 @@ public class ZipUtil {
 		}
 
 		ZipFile zipFile = new ZipFile(file);
-
-		Enumeration<ZipEntry> entryIt = (Enumeration<ZipEntry>) zipFile.entries();
-
-		String basePath = file.getParentFile().getCanonicalPath();
-		basePath = basePath.endsWith("/") ? basePath : basePath + "/";
-
 		List<File> files = new ArrayList<>();
-		while (entryIt.hasMoreElements()) {
-			ZipEntry entry = entryIt.nextElement();
 
-			String fileName = basePath + entry.getName();
-			File unzipedFile = new File(fileName);
-			if(entry.isDirectory()) {
-				if(!unzipedFile.exists()){
-					unzipedFile.mkdirs();
+		try {
+			Enumeration<ZipEntry> entryIt = (Enumeration<ZipEntry>) zipFile.entries();
+			String basePath = file.getParentFile().getCanonicalPath();
+			basePath = basePath.endsWith("/") ? basePath : basePath + "/";
+
+			while (entryIt.hasMoreElements()) {
+				ZipEntry entry = entryIt.nextElement();
+
+				String fileName = basePath + entry.getName();
+				File unzipedFile = new File(fileName);
+				if(entry.isDirectory()) {
+					if(!unzipedFile.exists()){
+						unzipedFile.mkdirs();
+					}
+				} else {
+					if(unzipedFile.exists()) {
+						unzipedFile.delete();
+					}
+					unzipedFile.createNewFile();
+					FileOutputStream fos = null;
+					try {
+						fos = new FileOutputStream(unzipedFile);
+						InputStream ins = zipFile.getInputStream(entry);
+						IOUtils.copy(ins, fos);
+						fos.flush();
+						files.add(unzipedFile);
+					} finally {
+						IOUtils.closeQuietly(fos);
+					}
 				}
-			} else {
-				if(unzipedFile.exists()) {
-					unzipedFile.delete();
-				}
-				unzipedFile.createNewFile();
-				files.add(unzipedFile);
-				FileOutputStream fos = new FileOutputStream(unzipedFile);
-				InputStream ins = zipFile.getInputStream(entry);
-				IOUtils.copy(ins, fos);
-				fos.flush();
-				IOUtils.closeQuietly(fos);
 			}
+		} finally {
+			try {zipFile.close();} catch (Exception e){}
 		}
 		return files;
 	}
-
 }
