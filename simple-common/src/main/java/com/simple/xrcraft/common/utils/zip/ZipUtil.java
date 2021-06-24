@@ -1,4 +1,4 @@
-package com.wimift.balance.core.utils;
+package com.simple.xrcraft.common.utils.zip;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
