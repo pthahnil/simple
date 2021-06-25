@@ -2,7 +2,6 @@ package com.simple.xrcraft.common.utils.zip;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,17 +25,14 @@ public class ZipUtil {
 	/**
 	 * 递归压缩
 	 * @param fileToZip
-	 * @param fileName
 	 * @throws IOException
 	 */
-	public static void zipFile(File fileToZip, String fileName) throws
+	public static void zipFile(File fileToZip) throws
 			IOException {
 		if(null == fileToZip || !fileToZip.exists()){
 			throw new IOException("file to zip does't exists");
 		}
-		if(StringUtils.isBlank(fileName)) {
-			fileName = fileToZip.getName();
-		}
+		String fileName = fileToZip.getName();
 
 		String baseName = FilenameUtils.getBaseName(fileName);
 		String targetFileName = baseName + ".zip";
@@ -54,7 +50,6 @@ public class ZipUtil {
 			IOUtils.closeQuietly(zos);
 			IOUtils.closeQuietly(fos);
 		}
-
 	}
 
 	/**
