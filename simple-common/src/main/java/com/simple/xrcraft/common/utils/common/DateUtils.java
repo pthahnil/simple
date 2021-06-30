@@ -2,6 +2,7 @@ package com.simple.xrcraft.common.utils.common;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.Assert;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -13,7 +14,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 
@@ -30,6 +30,7 @@ import java.util.List;
 public class DateUtils {
 
 	private static ZoneId sysZone = ZoneId.systemDefault();
+
 	private static ZoneOffset zoneOffset = OffsetDateTime.now().getOffset();
 
 	/**
@@ -64,6 +65,9 @@ public class DateUtils {
 	 * @return
 	 */
 	public static String date2String(Date original, String formatter){
+		Assert.notNull(original, "date can't be empty");
+		Assert.hasText(formatter, "formatter can't be empty");
+
 		Instant instant = original.toInstant();
 		LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, sysZone);
 
@@ -76,17 +80,12 @@ public class DateUtils {
 	 * @param formatter
 	 * @return
 	 */
-	public static Date string2Date(String dateString, String formatter) throws Exception {
-		LocalDateTime localDateTime = null;
-		dateString = organizeDateString(dateString);
-		formatter = organizePatternString(formatter);
+	public static Date string2Date(String dateString, String formatter) {
+		Assert.hasText(dateString, "dateString can't be empty");
+		Assert.hasText(formatter, "formatter can't be empty");
 
-		if(formatter.length() > dateString.length()){
-			throw new Exception("format exception");
-		} else {
-			dateString = dateString.substring(0, formatter.length());
-		}
-		if(dateString.length() > 8){
+		LocalDateTime localDateTime;
+		if(formatter.contains("HH") || formatter.contains("hh")){
 			localDateTime = LocalDateTime.parse(dateString, DateTimeFormatter.ofPattern(formatter));
 		} else {
 			LocalDate localDate = LocalDate.parse(dateString, DateTimeFormatter.ofPattern(formatter));
@@ -109,7 +108,7 @@ public class DateUtils {
 	}
 
 	/**
-	 * 日期间的天数
+	 * 日期间的小时数
 	 * @param from
 	 * @param to
 	 * @return
@@ -118,16 +117,38 @@ public class DateUtils {
 		return between(from, to, ChronoUnit.HOURS);
 	}
 
+	/**
+	 * 日期间的小时分钟
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public static Long minutesBetween(Date from, Date to){
+		return between(from, to, ChronoUnit.MINUTES);
+	}
+
+	/**
+	 * 日期间的小时分钟
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public static Long secondsBetween(Date from, Date to){
+		return between(from, to, ChronoUnit.SECONDS);
+	}
+
+	/**
+	 * 间隔
+	 * @param from
+	 * @param to
+	 * @param unit
+	 * @return
+	 */
 	private static Long between(Date from, Date to, ChronoUnit unit) {
-		if(null == from){
-			return null;
-		}
-		if(null == to){
-			return null;
-		}
-		if(null == unit){
-			return null;
-		}
+		Assert.notNull(from, "from can't be empty");
+		Assert.notNull(to, "to can't be empty");
+		Assert.notNull(unit, "unit can't be empty");
+
 		Instant insFrom = from.toInstant();
 		Instant insTo = to.toInstant();
 
@@ -166,6 +187,11 @@ public class DateUtils {
 		return getCertainTimeOfDay(date, LocalTime.MAX);
 	}
 
+	/**
+	 * 方便入库的最后时间
+	 * @param date
+	 * @return
+	 */
 	public static Date getEndOfDateV2(Date date){
 		LocalTime end = LocalTime.parse("23:59:59");
 		return getCertainTimeOfDay(date, end);
@@ -192,11 +218,9 @@ public class DateUtils {
 	 * @return
 	 */
 	public static String organizeDateString(String date){
-		if(StringUtils.isBlank(date)){
-			return null;
-		}
-		date = date.replaceAll("\\D", "");
+		Assert.hasText(date, "input date string can't be empty");
 
+		date = date.replaceAll("\\D", "");
 		return StringUtils.trimToEmpty(date);
 	}
 
@@ -206,9 +230,8 @@ public class DateUtils {
 	 * @return
 	 */
 	public static String organizePatternString(String pattern){
-		if(StringUtils.isBlank(pattern)){
-			return null;
-		}
+		Assert.hasText(pattern, "input date pattern can't be empty");
+
 		pattern = pattern.replaceAll("\\W", "");
 		return StringUtils.trimToEmpty(pattern);
 	}
@@ -221,10 +244,8 @@ public class DateUtils {
 	 */
 	public static int calculateAge(String birthDay, String textFormat){
 
-		if(StringUtils.isBlank(birthDay) || StringUtils.isBlank(textFormat)){
-			log.error("请输入正确出生年月和时间格式，birthday:{}, format:{}", birthDay, textFormat);
-			return 0;
-		}
+		Assert.hasText(birthDay, "input date string can't be empty");
+		Assert.hasText(textFormat, "input date format can't be empty");
 
 		LocalDate birth = LocalDate.parse(birthDay, DateTimeFormatter.ofPattern(textFormat));
 		Long age = birth.until(LocalDate.now(), ChronoUnit.MONTHS)/12;
@@ -243,9 +264,8 @@ public class DateUtils {
 	 * @return
 	 */
 	public static LocalDateTime dt2Lc(Date date) {
-		if(null == date){
-			return null;
-		}
+		Assert.notNull(date, "input date can't be null");
+
 		Instant instant = date.toInstant();
 		return LocalDateTime.ofInstant(instant, sysZone);
 	}
@@ -256,9 +276,7 @@ public class DateUtils {
 	 * @return
 	 */
 	public static Date lc2Dt(LocalDateTime time) {
-		if(null == time){
-			return null;
-		}
+		Assert.notNull(time, "input date can't be null");
 		Instant instant = time.toInstant(zoneOffset);
 		return Date.from(instant);
 	}
@@ -269,9 +287,8 @@ public class DateUtils {
 	 * @return
 	 */
 	public static Date getStartOfMonth(Date date) {
-		if(null == date){
-			return null;
-		}
+		Assert.notNull(date, "input date can't be null");
+
 		Instant instant = date.toInstant();
 		LocalDateTime time = LocalDateTime.ofInstant(instant, sysZone);
 
@@ -289,9 +306,8 @@ public class DateUtils {
 	 * @return
 	 */
 	public static Date getEndOfMonth(Date date) {
-		if(null == date){
-			return null;
-		}
+		Assert.notNull(date, "input date can't be null");
+
 		Instant instant = date.toInstant();
 		LocalDateTime time = LocalDateTime.ofInstant(instant, sysZone);
 
@@ -303,44 +319,6 @@ public class DateUtils {
 		return lc2Dt(time);
 	}
 
-	/**
-	 * 多个时间区间，取最佳
-	 * @param date
-	 * @param sortedGaps seconds
-	 * @return
-	 */
-	public static int getTimeGap(Date date, List<Integer> sortedGaps){
-
-		if(null == date){
-			return 0;
-		}
-		if(null == sortedGaps || sortedGaps.size() == 0){
-			return 0;
-		}
-		for (Integer gap : sortedGaps) {
-			if(timeGapGraterThen(date, gap)){
-				return gap;
-			}
-		}
-		return 30;
-	}
-
-	/**
-	 * 所给的时间跟现在时间相差的秒数是否大于 入参seconds
-	 * @param date
-	 * @param seconds
-	 * @return
-	 */
-	public static boolean timeGapGraterThen(Date date, int seconds) {
-		if(null == date){
-			return false;
-		}
-		Instant instant = date.toInstant();
-		LocalDateTime time = LocalDateTime.ofInstant(instant, sysZone);
-		LocalDateTime now = LocalDateTime.now();
-
-		return time.until(now, ChronoUnit.SECONDS) >= seconds;
-	}
 }
 
 	
